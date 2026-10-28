@@ -817,6 +817,113 @@ select {
   color: var(--text);
 }
 
+/* ---------- Footer: Ramadan countdown + rotating verse ---------- */
+
+.footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 3rem);
+  padding-top: clamp(0.5rem, 1.4vh, 1.2rem);
+  border-top: 1px solid var(--border);
+  min-height: 0;
+}
+
+.footer-ramadan {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.ramadan-icon {
+  font-size: clamp(0.9rem, 1.5vw, 1.6rem);
+  line-height: 1;
+  color: var(--accent);
+}
+
+.ramadan-text {
+  font-size: clamp(0.8rem, 1.35vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.verse {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(0.6rem, 1.5vw, 1.5rem);
+  text-align: right;
+}
+
+.verse-body {
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.verse-body.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.verse-arabic {
+  margin: 0;
+  font-family: var(--font-arabic);
+  font-size: clamp(1.05rem, 2.1vw, 2.4rem);
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.verse-english {
+  margin: 0;
+  font-size: clamp(0.85rem, 1.45vw, 1.6rem);
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+.verse-ref {
+  flex: 0 0 auto;
+  font-size: clamp(0.62rem, 1vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Mint theme: the footer sits on the bright canvas. */
+[data-theme='mint'] .footer {
+  border-top-color: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme='mint'] .ramadan-icon {
+  color: #ffffff;
+}
+
+[data-theme='mint'] .ramadan-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme='mint'] .verse-arabic {
+  color: #ffffff;
+}
+
+[data-theme='mint'] .verse-english {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+[data-theme='mint'] .verse-ref {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
@@ -865,6 +972,19 @@ select {
   .panel-footer {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  /* Stack the footer on narrow screens. */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .verse {
+    justify-content: flex-start;
+    text-align: left;
+    width: 100%;
   }
 }
 

@@ -1,9 +1,11 @@
 import { formatClock, formatCountdown } from '../lib/format';
 import type { PrayerEntry, Selection } from '../lib/prayer';
+import { daysUntilRamadan, ramadanLabel } from '../lib/ramadan';
 import type { Settings } from '../lib/settings';
 import { Clock } from './Clock';
 import { DateLine } from './DateLine';
 import { PrayerList } from './PrayerList';
+import { VerseRotator } from './VerseRotator';
 
 interface Props {
   settings: Settings;
@@ -29,6 +31,12 @@ export function PrayerBoard({
   const { next, previous } = selection;
   const remaining = next ? next.time.getTime() - now.getTime() : 0;
   const countdown = formatCountdown(remaining);
+
+  const ramadanDays = daysUntilRamadan(
+    now,
+    settings.timezone,
+    settings.hijriOffset,
+  );
 
   return (
     <div className="board">
@@ -141,6 +149,17 @@ export function PrayerBoard({
           </div>
         </aside>
       </main>
+
+      <footer className="footer">
+        <div className="footer-ramadan">
+          <span className="ramadan-icon" aria-hidden="true">
+            ☾
+          </span>
+          <span className="ramadan-text">{ramadanLabel(ramadanDays)}</span>
+        </div>
+
+        <VerseRotator />
+      </footer>
     </div>
   );
 }

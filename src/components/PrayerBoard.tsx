@@ -1,4 +1,4 @@
-import { formatClock, formatCountdown, humanizeCountdown } from '../lib/format';
+import { formatClock, formatCountdown } from '../lib/format';
 import type { PrayerEntry, Selection } from '../lib/prayer';
 import type { Settings } from '../lib/settings';
 import { Clock } from './Clock';
@@ -38,7 +38,6 @@ export function PrayerBoard({
             ◈
           </span>
           <div className="topbar-text">
-            <span className="location">{settings.locationName}</span>
             <DateLine
               now={now}
               timeZone={settings.timezone}
@@ -52,7 +51,6 @@ export function PrayerBoard({
             now={now}
             timeZone={settings.timezone}
             use24Hour={settings.use24Hour}
-            showSeconds={settings.showSeconds}
           />
           {showSettingsButton && (
             <button
@@ -89,9 +87,7 @@ export function PrayerBoard({
 
               <div className="hero-countdown">
                 <span className="countdown-value">{countdown.text}</span>
-                <span className="countdown-label">
-                  {humanizeCountdown(remaining)}
-                </span>
+                <span className="countdown-label">until {next.label}</span>
               </div>
             </>
           ) : (

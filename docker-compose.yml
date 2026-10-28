@@ -15,6 +15,10 @@ services:
     ports:
       # host:container — change the left side if port 80 is taken.
       - "80:80"
+    volumes:
+      # Runtime config lives on the host, NOT in the image.
+      # Create it once with the real location; it survives image updates.
+      - ./config.json:/usr/share/nginx/html/config.json:ro
     environment:
       - TZ=Europe/London
     healthcheck:

@@ -1,20 +1,15 @@
-import { formatClockWithSeconds } from '../lib/format';
+import { formatClock } from '../lib/format';
 
 interface Props {
   now: Date;
   timeZone: string;
   use24Hour: boolean;
-  showSeconds: boolean;
 }
 
-export function Clock({ now, timeZone, use24Hour, showSeconds }: Props) {
-  const text = showSeconds
-    ? formatClockWithSeconds(now, timeZone, use24Hour)
-    : formatClockWithSeconds(now, timeZone, use24Hour).slice(0, 5);
-
+export function Clock({ now, timeZone, use24Hour }: Props) {
   return (
     <time className="clock" dateTime={now.toISOString()}>
-      {text}
+      {formatClock(now, timeZone, use24Hour)}
     </time>
   );
 }

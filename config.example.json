@@ -1,0 +1,19 @@
+{
+  "_comment": "Copy this file to config.json on the SERVER. Do not commit it. These values overwrite every device's settings, keeping all screens uniform.",
+  "latitude": 51.4613,
+  "longitude": -0.1866,
+  "timezone": "Europe/London",
+  "method": "MoonsightingCommittee",
+  "madhab": "shafi",
+  "theme": "mint",
+  "use24Hour": true,
+  "hijriOffset": 0,
+  "adjustments": {
+    "fajr": 0,
+    "sunrise": 0,
+    "dhuhr": 0,
+    "asr": 0,
+    "maghrib": 0,
+    "isha": 0
+  }
+}

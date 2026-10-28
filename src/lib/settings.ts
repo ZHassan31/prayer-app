@@ -1,16 +1,19 @@
 import type { MethodKey, MadhabKey, PrayerKey } from './prayer';
+import type { AppConfig } from './config';
 
-export type ThemeKey = 'midnight' | 'emerald' | 'sand' | 'slate';
+export type ThemeKey = 'mint' | 'midnight' | 'emerald' | 'sand' | 'slate';
 
 export const THEMES: Record<ThemeKey, string> = {
+  mint: 'Mint',
   midnight: 'Midnight',
   emerald: 'Emerald',
   sand: 'Sand',
   slate: 'Slate',
 };
 
+export const THEME_KEYS = Object.keys(THEMES) as ThemeKey[];
+
 export interface Settings {
-  locationName: string;
   latitude: number;
   longitude: number;
   timezone: string;
@@ -20,7 +23,6 @@ export interface Settings {
   use24Hour: boolean;
   hijriOffset: number;
   theme: ThemeKey;
-  showSeconds: boolean;
   /** Set once the user has saved their own location. */
   configured: boolean;
 }
@@ -28,11 +30,12 @@ export interface Settings {
 const STORAGE_KEY = 'prayer-app.settings.v1';
 
 export const DEFAULT_SETTINGS: Settings = {
-  locationName: 'Makkah',
-  latitude: 21.4225,
-  longitude: 39.8262,
-  timezone: 'Asia/Riyadh',
-  method: 'UmmAlQura',
+  // Neutral fallback only. The real location is supplied at runtime by
+  // /config.json, which is gitignored and never baked into the image.
+  latitude: 51.5074,
+  longitude: -0.1278,
+  timezone: 'Europe/London',
+  method: 'MoonsightingCommittee',
   madhab: 'shafi',
   adjustments: {
     fajr: 0,
@@ -44,8 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   use24Hour: true,
   hijriOffset: 0,
-  theme: 'midnight',
-  showSeconds: true,
+  theme: 'mint',
   configured: false,
 };
 
@@ -72,10 +74,6 @@ export function normalizeSettings(raw: unknown): Settings {
   }
 
   return {
-    locationName:
-      typeof input.locationName === 'string' && input.locationName.trim()
-        ? input.locationName.trim().slice(0, 60)
-        : DEFAULT_SETTINGS.locationName,
     latitude: clampNumber(input.latitude, -90, 90, DEFAULT_SETTINGS.latitude),
     longitude: clampNumber(
       input.longitude,
@@ -99,15 +97,13 @@ export function normalizeSettings(raw: unknown): Settings {
         : DEFAULT_SETTINGS.use24Hour,
     hijriOffset: clampNumber(input.hijriOffset, -3, 3, 0),
     theme:
+      input.theme === 'midnight' ||
       input.theme === 'emerald' ||
       input.theme === 'sand' ||
-      input.theme === 'slate'
+      input.theme === 'slate' ||
+      input.theme === 'mint'
         ? input.theme
-        : 'midnight',
-    showSeconds:
-      typeof input.showSeconds === 'boolean'
-        ? input.showSeconds
-        : DEFAULT_SETTINGS.showSeconds,
+        : 'mint',
     configured: input.configured === true,
   };
 }
@@ -119,6 +115,71 @@ export function loadSettings(): Settings {
     return normalizeSettings(JSON.parse(stored));
   } catch {
     return DEFAULT_SETTINGS;
+  }
+}
+
+/**
+ * Applies runtime config to a settings object.
+ *
+ * **The server config is authoritative.** When `/config.json` supplies a
+ * location, it always wins — on fresh installs and on devices that already
+ * have settings. This is what keeps every screen uniform: change config.json,
+ * restart the container, and every TV converges on the same values on its
+ * next load.
+ *
+ * The consequence is deliberate: per-device edits made in the settings panel
+ * are overwritten on the next load. If you want a device to keep its own
+ * values, remove the location from config.json (or run that device without
+ * the config file mounted).
+ *
+ * Returns the settings to use, plus whether anything changed.
+ */
+export function applyConfig(
+  settings: Settings,
+  config: AppConfig,
+): { settings: Settings; changed: boolean } {
+  const hasLocation =
+    typeof config.latitude === 'number' && typeof config.longitude === 'number';
+
+  if (!hasLocation) return { settings, changed: false };
+
+  const next: Settings = {
+    ...settings,
+    latitude: config.latitude as number,
+    longitude: config.longitude as number,
+    timezone: config.timezone ?? settings.timezone,
+    method: (config.method as MethodKey) ?? settings.method,
+    madhab: config.madhab === 'hanafi' ? 'hanafi' : settings.madhab,
+    theme: (config.theme as Settings['theme']) ?? settings.theme,
+    use24Hour: config.use24Hour ?? settings.use24Hour,
+    hijriOffset: config.hijriOffset ?? settings.hijriOffset,
+    adjustments: config.adjustments
+      ? { ...settings.adjustments, ...config.adjustments }
+      : settings.adjustments,
+    configured: true,
+  };
+
+  const changed =
+    next.latitude !== settings.latitude ||
+    next.longitude !== settings.longitude ||
+    next.timezone !== settings.timezone ||
+    next.method !== settings.method ||
+    next.madhab !== settings.madhab ||
+    next.theme !== settings.theme ||
+    next.use24Hour !== settings.use24Hour ||
+    next.hijriOffset !== settings.hijriOffset ||
+    JSON.stringify(next.adjustments) !== JSON.stringify(settings.adjustments) ||
+    next.configured !== settings.configured;
+
+  return { settings: next, changed };
+}
+
+/** True when this device has never saved settings. */
+export function hasStoredSettings(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
   }
 }
 

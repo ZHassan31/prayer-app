@@ -7,3 +7,6 @@ dist
 !README.md
 .DS_Store
 .vscode
+
+# Never bake the real location into the image.
+config.json

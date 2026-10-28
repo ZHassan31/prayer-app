@@ -13,20 +13,6 @@ export function formatClock(
   }).format(date);
 }
 
-export function formatClockWithSeconds(
-  date: Date,
-  timeZone: string,
-  use24Hour: boolean,
-): string {
-  return new Intl.DateTimeFormat(use24Hour ? 'en-GB' : 'en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: !use24Hour,
-    timeZone,
-  }).format(date);
-}
-
 export function formatGregorian(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     weekday: 'long',
@@ -59,10 +45,16 @@ export interface Countdown {
   hours: number;
   minutes: number;
   seconds: number;
+  /** HH:MM:SS — the countdown is the only place seconds are shown. */
   text: string;
-  short: string;
 }
 
+/**
+ * Formats a duration as HH:MM:SS.
+ *
+ * Seconds are shown here (and only here) because the countdown is the one
+ * value that benefits from ticking. The wall clock stays at HH:MM.
+ */
 export function formatCountdown(ms: number): Countdown {
   const total = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(total / 3600);
@@ -74,22 +66,5 @@ export function formatCountdown(ms: number): Countdown {
     minutes,
     seconds,
     text: `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`,
-    short:
-      hours > 0
-        ? `${hours}h ${pad2(minutes)}m`
-        : minutes > 0
-          ? `${minutes}m ${pad2(seconds)}s`
-          : `${seconds}s`,
   };
-}
-
-/** "in 2h 15m" style label used in the header. */
-export function humanizeCountdown(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-
-  if (hours > 0) return `in ${hours}h ${pad2(minutes)}m`;
-  if (minutes > 0) return `in ${minutes}m`;
-  return 'in under a minute';
 }

@@ -17,7 +17,7 @@ your internet goes down.
 - **Qibla bearing** from your coordinates
 - **Hijri + Gregorian dates** (Umm al-Qura calendar, adjustable ±3 days)
 - **12 calculation methods** + Hanafi/Shafi Asr, per-prayer minute adjustments
-- **4 themes**, 12/24-hour clock, optional seconds
+- **5 themes**, 12/24-hour clock; the wall clock shows HH:MM, the countdown ticks in seconds
 - **TV-optimised** — scales to any screen, hides the cursor when idle, keeps the screen awake
 - **Kiosk mode** — `?kiosk` hides the settings button for a locked-down display
 - **Offline-first** — settings stored in `localStorage`, no backend required
@@ -120,6 +120,23 @@ Then restart the container — also on the host:
 pct stop 102 && pct start 102
 ```
 
+You will likely see this warning:
+
+```
+explicitly configured lxc.apparmor.profile overrides the following settings: features:nesting
+```
+
+**This is expected and harmless.** It means your explicit `lxc.apparmor.profile:
+unconfined` takes precedence over the AppArmor profile that `nesting=1` would
+otherwise set. `nesting=1` still applies its other effects, and the unconfined
+profile is what allows Docker to run. No action needed.
+
+Confirm the settings landed:
+
+```bash
+pct config 102 | grep -E 'features|apparmor|cgroup2|cap.drop'
+```
+
 > If you'd rather avoid these tweaks, create a **privileged** container instead
 > (uncheck "Unprivileged container" in the Create CT wizard), or use a small VM.
 > Both work fine.
@@ -130,18 +147,23 @@ Now enter the container — the prompt will change to the container's hostname:
 
 ```bash
 pct enter 102
-
-apt update && apt upgrade -y
-apt install -y curl ca-certificates
-curl -fsSL https://get.docker.com | sh
-systemctl enable --now docker
 ```
 
-Verify it works:
+Then install Docker with a single command:
 
 ```bash
-docker run --rm hello-world
+apt-get update && apt-get install -y curl ca-certificates && curl -fsSL https://get.docker.com | sh && systemctl enable --now docker && docker run --rm hello-world
 ```
+
+That updates the package list, installs the prerequisites, installs Docker,
+enables it on boot, and runs the test image. You should end with
+`Hello from Docker!`.
+
+> Add `DEBIAN_FRONTEND=noninteractive apt-get upgrade -y &&` after the `update`
+> if you also want to apply pending system upgrades (slower, optional).
+
+> **Paste one command at a time.** Pasting multiple lines into `pct enter` can
+> drop lines while the container's shell is still starting up.
 
 #### 4. Publish the image from GitHub
 
@@ -268,20 +290,101 @@ docker inspect prayer-app --format '{{.Image}}'
 
 ## Configuration reference
 
-All settings live in the browser's `localStorage` under `prayer-app.settings.v1`.
-There is no server-side config, which means **each browser/TV keeps its own
-settings**. If you clear site data, you'll be asked to set up again.
+### Server config is authoritative
+
+The real location is supplied by a **`config.json`** file that is:
+
+- **gitignored** — never committed to the repo
+- **excluded from the Docker image** via `.dockerignore`
+- **mounted into the container** at deploy time
+
+So the public repo and the public GHCR image contain **no location data**.
+
+**Every device is overwritten by this file on each load.** That is what keeps
+all screens uniform: change `config.json`, restart the container, and every TV
+converges on the same values within a minute.
+
+Create it on the container:
+
+```bash
+cd /opt/prayer-app
+cat > config.json <<'EOF'
+{
+  "latitude": 51.4613,
+  "longitude": -0.1866,
+  "timezone": "Europe/London",
+  "method": "MoonsightingCommittee",
+  "madhab": "shafi",
+  "theme": "mint",
+  "use24Hour": true,
+  "hijriOffset": 0,
+  "adjustments": { "fajr": 0, "sunrise": 0, "dhuhr": 0, "asr": 0, "maghrib": 0, "isha": 0 }
+}
+EOF
+docker compose up -d
+```
+
+`docker-compose.yml` already mounts it read-only:
+
+```yaml
+volumes:
+  - ./config.json:/usr/share/nginx/html/config.json:ro
+```
+
+nginx serves it with `no-store`, so edits take effect on the next page load
+without rebuilding anything.
+
+#### Supported keys
+
+| Key | Type | Notes |
+| --- | --- | --- |
+| `latitude` / `longitude` | number | Decimal degrees — the only location data needed |
+| `timezone` | string | IANA name, e.g. `Europe/London` |
+| `method` | string | See the method list below |
+| `madhab` | `shafi` \| `hanafi` | Affects Asr |
+| `theme` | `mint` \| `midnight` \| `emerald` \| `sand` \| `slate` | |
+| `use24Hour` | boolean | |
+| `hijriOffset` | number | −3 to 3 |
+| `adjustments` | object | Per-prayer minutes, −60 to 60 |
+
+> There is no place-name field. Coordinates are all that's needed to compute
+> the times, so nothing identifying is stored or displayed.
+
+Any key you omit falls back to the device's current value.
+
+#### The tradeoff
+
+Because the server config wins, **per-device edits are temporary** — they're
+overwritten on the next load. The settings panel says so when config is active.
+If you want a device to keep its own values, remove the location from
+`config.json` (or don't mount the file on that device).
+
+### Keeping every screen on the latest build
+
+Two mechanisms work together:
+
+1. **Watchtower** pulls a new image within 60s of a merge to `main`.
+2. **The app polls `/version.json`** every 60s and reloads itself when the
+   build id changes.
+
+So a TV left on for weeks still picks up a new deploy without anyone touching
+it. A 30-second cooldown guard prevents a reload loop if a browser serves a
+cached HTML shell alongside a fresh `version.json`.
+
+### Per-device settings
+
+Everything else lives in the browser's `localStorage` under
+`prayer-app.settings.v1`. There is no server-side state beyond `config.json`.
 
 | Setting | Notes |
 | --- | --- |
-| Location label | Free text shown in the header |
 | Latitude / Longitude | Decimal degrees; "Use my location" fills these in |
 | Timezone | IANA name, e.g. `Europe/London`. **Must match your city**, not the server |
 | Method | Calculation method; pick the one your local mosque follows |
 | Asr madhab | Hanafi uses a later Asr |
 | Adjustments | Per-prayer offset in minutes, to match your mosque's timetable |
 | Hijri offset | ±3 days, to align with local moon sighting |
-| Theme | Midnight, Emerald, Sand, Slate |
+| Theme | Mint, Midnight, Emerald, Sand, Slate |
 
 > **Timezone matters.** Prayer times are computed for a civil date in the
 > configured timezone, so the display is correct even if the TV's own clock is
@@ -307,9 +410,14 @@ src/
     useWakeLock.ts           keeps the TV screen awake
   lib/
     prayer.ts                adhan wrapper, schedule + selection logic
-    settings.ts              defaults, validation, persistence
+    settings.ts              defaults, validation, persistence, config merge
+    config.ts                runtime /config.json loader
+    version.ts               build-id polling + auto-reload
     format.ts                time / date / countdown formatting
 ```
+
+> `config.json` is gitignored — it holds the real location and must never be
+> committed. `config.example.json` is the committed template.
 
 ---
 
@@ -339,6 +447,50 @@ LXC to confirm the new image was pulled.
 You're inside the container. `/etc/pve` only exists on the Proxmox host. Run
 `exit` to get back to the host (prompt becomes `root@pve:~#`), then re-run the
 command. See step 2 above.
+
+**`Temporary failure resolving 'deb.debian.org'` / `apt` can't download anything**
+The container has no working DNS or routing. Diagnose inside the container:
+
+```bash
+ip -4 addr show | grep inet
+ip route
+cat /etc/resolv.conf
+ping -c2 1.1.1.1
+ping -c2 deb.debian.org
+```
+
+- `ping 1.1.1.1` fails → **routing/IP problem**, not DNS.
+- `ping 1.1.1.1` works but the hostname fails → **DNS only**.
+
+The most common cause is a bad IP in the Create CT wizard — for example the
+container taking the router's address (`192.168.1.1`) or a gateway that doesn't
+exist. Check the real gateway **on the host**:
+
+```bash
+ip route | grep default
+```
+
+Then fix the container's network **on the host** (use your own free IP and the
+gateway from the command above):
+
+```bash
+pct set 102 --net0 name=eth0,bridge=vmbr0,ip=192.168.1.50/24,gw=192.168.1.1
+pct set 102 --nameserver 1.1.1.1
+pct reboot 102
+```
+
+Pick an IP outside your router's DHCP pool. Verify inside the container:
+
+```bash
+ping -c2 1.1.1.1 && ping -c2 deb.debian.org
+```
+
+If only DNS is broken, you can also patch it in place:
+
+```bash
+rm -f /etc/resolv.conf
+printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > /etc/resolv.conf
+```
 
 **Container won't start / Docker fails in LXC**
 Re-check the `features: nesting=1` and `lxc.apparmor.profile: unconfined` lines

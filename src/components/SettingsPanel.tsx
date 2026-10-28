@@ -11,6 +11,7 @@ import {
 import {
   DEFAULT_SETTINGS,
   THEMES,
+  THEME_KEYS,
   guessTimezone,
   listTimezones,
   normalizeSettings,
@@ -21,11 +22,19 @@ import {
 interface Props {
   initial: Settings;
   firstRun: boolean;
+  /** True when /config.json supplies the location, making it authoritative. */
+  managed?: boolean;
   onSave: (settings: Settings) => void;
   onClose?: () => void;
 }
 
-export function SettingsPanel({ initial, firstRun, onSave, onClose }: Props) {
+export function SettingsPanel({
+  initial,
+  firstRun,
+  managed = false,
+  onSave,
+  onClose,
+}: Props) {
   const [draft, setDraft] = useState<Settings>(initial);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [geoBusy, setGeoBusy] = useState(false);
@@ -85,9 +94,11 @@ export function SettingsPanel({ initial, firstRun, onSave, onClose }: Props) {
           <div>
             <h2>{firstRun ? 'Set up prayer times' : 'Settings'}</h2>
             <p className="panel-sub">
-              {firstRun
-                ? 'Choose your location and calculation method to get started.'
-                : 'Changes are saved on this device.'}
+              {managed
+                ? 'This device is managed by the server config. Changes here are temporary and will be overwritten on the next load.'
+                : firstRun
+                  ? 'Choose your location and calculation method to get started.'
+                  : 'Changes are saved on this device.'}
             </p>
           </div>
           {onClose && (
@@ -105,17 +116,6 @@ export function SettingsPanel({ initial, firstRun, onSave, onClose }: Props) {
         <div className="panel-body">
           <section className="field-group">
             <h3>Location</h3>
-
-            <label className="field">
-              <span>Label</span>
-              <input
-                type="text"
-                value={draft.locationName}
-                maxLength={60}
-                onChange={(e) => update('locationName', e.target.value)}
-                placeholder="e.g. Home, London"
-              />
-            </label>
 
             <div className="field-row">
               <label className="field">
@@ -238,7 +238,7 @@ export function SettingsPanel({ initial, firstRun, onSave, onClose }: Props) {
                   value={draft.theme}
                   onChange={(e) => update('theme', e.target.value as ThemeKey)}
                 >
-                  {(Object.keys(THEMES) as ThemeKey[]).map((key) => (
+                  {THEME_KEYS.map((key) => (
                     <option key={key} value={key}>
                       {THEMES[key]}
                     </option>
@@ -267,15 +267,6 @@ export function SettingsPanel({ initial, firstRun, onSave, onClose }: Props) {
                   onChange={(e) => update('use24Hour', e.target.checked)}
                 />
                 <span>24-hour clock</span>
-              </label>
-
-              <label className="toggle">
-                <input
-                  type="checkbox"
-                  checked={draft.showSeconds}
-                  onChange={(e) => update('showSeconds', e.target.checked)}
-                />
-                <span>Show seconds</span>
               </label>
             </div>
           </section>

@@ -8,3 +8,7 @@ dist-ssr
 *.tsbuildinfo
 .vscode/*
 !.vscode/extensions.json
+
+# Runtime config — contains the real location. Never commit this.
+public/config.json
+config.json

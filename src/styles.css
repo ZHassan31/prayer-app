@@ -17,6 +17,9 @@
   --accent-2: #38bdf8;
   --accent-soft: rgba(110, 231, 183, 0.14);
   --glow: rgba(56, 189, 248, 0.22);
+  --panel-bg: #101827;
+  --panel-bg-2: #0a1120;
+  --option-bg: #0d1424;
   --radius: 20px;
   --font: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -25,6 +28,103 @@
 }
 
 /* ---------- Themes ---------- */
+
+/* Mint — bright teal canvas with deep green cards. */
+[data-theme='mint'] {
+  --bg: #2bbfa3;
+  --bg-2: #23a98f;
+  --surface: rgba(7, 46, 38, 0.82);
+  --surface-strong: rgba(7, 46, 38, 0.95);
+  --border: rgba(255, 255, 255, 0.16);
+  --text: #ffffff;
+  --text-dim: rgba(255, 255, 255, 0.8);
+  --text-faint: rgba(255, 255, 255, 0.58);
+  --accent: #3ddc8c;
+  --accent-2: #22c55e;
+  --accent-soft: rgba(61, 220, 140, 0.2);
+  --glow: rgba(61, 220, 140, 0.28);
+  --panel-bg: #0a3a30;
+  --panel-bg-2: #072b24;
+  --option-bg: #0a3a30;
+}
+
+/* On the bright teal canvas, green accents lose contrast — use white. */
+[data-theme='mint'] .hero-eyebrow {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='mint'] .hero-name {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+  color: #ffffff;
+}
+
+[data-theme='mint'] .hero-arabic {
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+[data-theme='mint'] .countdown-value {
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme='mint'] .progress {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme='mint'] .progress-fill {
+  background: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.45);
+}
+
+[data-theme='mint'] .progress-labels {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme='mint'] .pin {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme='mint'] .clock {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+[data-theme='mint'] .dateline {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+[data-theme='mint'] .dateline-hijri {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+[data-theme='mint'] .icon-button {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+[data-theme='mint'] .icon-button:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Inside the dark cards, the green accent reads well again. */
+[data-theme='mint'] .prayer-row.is-next {
+  background: rgba(61, 220, 140, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(61, 220, 140, 0.4);
+}
+
+[data-theme='mint'] .prayer-row.is-next .row-name,
+[data-theme='mint'] .prayer-row.is-next .row-time {
+  color: #4ade80;
+}
+
+[data-theme='mint'] .prayer-row.is-current {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='mint'] .qibla-arrow {
+  color: #4ade80;
+}
 
 [data-theme='emerald'] {
   --bg: #04120e;
@@ -191,16 +291,6 @@ select {
   line-height: 1;
 }
 
-.location {
-  font-size: clamp(0.95rem, 1.7vw, 1.9rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
@@ -213,6 +303,7 @@ select {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   color: var(--text-dim);
+  white-space: nowrap;
 }
 
 .icon-button {
@@ -509,7 +600,7 @@ select {
   flex-direction: column;
   border-radius: 24px;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, #101827 0%, #0a1120 100%);
+  background: linear-gradient(180deg, var(--panel-bg) 0%, var(--panel-bg-2) 100%);
   box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   animation: rise 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -605,7 +696,7 @@ select {
 }
 
 .field select option {
-  background: #0d1424;
+  background: var(--option-bg);
   color: var(--text);
 }
 
@@ -765,6 +856,14 @@ select {
 @media (max-width: 560px) {
   .board {
     padding: 0.9rem;
+  }
+
+  .clock {
+    font-size: 0.95rem;
+  }
+
+  .dateline {
+    font-size: 0.6rem;
   }
 
   .panel-body {

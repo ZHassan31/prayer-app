@@ -9,6 +9,9 @@ RUN npm ci || npm install
 
 # Copy sources and build.
 COPY . .
+# A unique id per image, so running clients can detect a new deploy.
+ARG BUILD_ID
+ENV BUILD_ID=${BUILD_ID}
 RUN npm run build
 
 # ---------- Runtime stage ----------

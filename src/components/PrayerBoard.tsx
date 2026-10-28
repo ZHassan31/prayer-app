@@ -81,10 +81,6 @@ export function PrayerBoard({
                 </span>
               </h1>
 
-              <p className="hero-time">
-                {formatClock(next.time, settings.timezone, settings.use24Hour)}
-              </p>
-
               <div className="hero-countdown">
                 <span className="countdown-value">{countdown.text}</span>
                 <span className="countdown-label">until {next.label}</span>

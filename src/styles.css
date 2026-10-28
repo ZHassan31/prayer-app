@@ -380,15 +380,6 @@ select {
   -webkit-text-fill-color: var(--text-faint);
 }
 
-.hero-time {
-  margin: clamp(0.4rem, 1.4vh, 1.2rem) 0 0;
-  font-size: clamp(1.6rem, 3.6vw, 4.2rem);
-  font-weight: 300;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--text-dim);
-}
-
 .hero-countdown {
   display: flex;
   align-items: baseline;

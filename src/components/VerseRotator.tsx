@@ -57,8 +57,8 @@ export function VerseRotator() {
         ) : (
           <p className="verse-english">{verse.english}</p>
         )}
+        <span className="verse-ref">{verse.reference}</span>
       </div>
-      <span className="verse-ref">{verse.reference}</span>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { formatHijriDate } from './hijri';
+
 export const pad2 = (value: number): string => String(value).padStart(2, '0');
 
 export function formatClock(
@@ -23,22 +25,16 @@ export function formatGregorian(date: Date, timeZone: string): string {
   }).format(date);
 }
 
+/**
+ * Hijri date for display. Delegates to the shared Umm al-Qura helper so the
+ * header and the Ramadan countdown always agree.
+ */
 export function formatHijri(
   date: Date,
-  timeZone: string,
+  _timeZone: string,
   offsetDays: number,
 ): string {
-  const shifted = new Date(date.getTime() + offsetDays * 86_400_000);
-  try {
-    return new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone,
-    }).format(shifted);
-  } catch {
-    return '';
-  }
+  return formatHijriDate(date, offsetDays);
 }
 
 export interface Countdown {

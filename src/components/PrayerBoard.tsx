@@ -1,6 +1,6 @@
 import { formatClock, formatCountdown } from '../lib/format';
-import type { PrayerEntry, Selection } from '../lib/prayer';
-import { daysUntilRamadan, ramadanLabel } from '../lib/ramadan';
+import { anchorUtcNoon, daysUntilRamadan, ramadanLabel } from '../lib/hijri';
+import { civilDateInTimeZone, type PrayerEntry, type Selection } from '../lib/prayer';
 import type { Settings } from '../lib/settings';
 import { Clock } from './Clock';
 import { DateLine } from './DateLine';
@@ -32,9 +32,9 @@ export function PrayerBoard({
   const remaining = next ? next.time.getTime() - now.getTime() : 0;
   const countdown = formatCountdown(remaining);
 
+  const { year, month, day } = civilDateInTimeZone(now, settings.timezone);
   const ramadanDays = daysUntilRamadan(
-    now,
-    settings.timezone,
+    anchorUtcNoon(year, month, day),
     settings.hijriOffset,
   );
 
@@ -51,6 +51,14 @@ export function PrayerBoard({
               timeZone={settings.timezone}
               hijriOffset={settings.hijriOffset}
             />
+            {ramadanDays !== null && (
+              <span className="ramadan-inline">
+                <span className="ramadan-icon" aria-hidden="true">
+                  ☾
+                </span>
+                {ramadanLabel(ramadanDays)}
+              </span>
+            )}
           </div>
         </div>
 
@@ -151,13 +159,6 @@ export function PrayerBoard({
       </main>
 
       <footer className="footer">
-        <div className="footer-ramadan">
-          <span className="ramadan-icon" aria-hidden="true">
-            ☾
-          </span>
-          <span className="ramadan-text">{ramadanLabel(ramadanDays)}</span>
-        </div>
-
         <VerseRotator />
       </footer>
     </div>

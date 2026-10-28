@@ -819,14 +819,22 @@ select {
 
 /* ---------- Footer: Ramadan countdown + rotating verse ---------- */
 
+/*
+ * The footer has a FIXED height. Verses vary in length, so if the footer
+ * grew to fit its content the whole page would jump up and down on every
+ * rotation. A fixed box plus an absolutely-positioned body means the verse
+ * changes in place and nothing else on screen moves.
+ */
 .footer {
   flex: 0 0 auto;
+  position: relative;
+  height: clamp(5.5rem, 13vh, 10rem);
   display: flex;
   align-items: center;
   justify-content: center;
   padding-top: clamp(0.5rem, 1.4vh, 1.2rem);
   border-top: 1px solid var(--border);
-  min-height: 0;
+  overflow: hidden;
 }
 
 /* Ramadan countdown, inline under the date in the header. */
@@ -848,16 +856,18 @@ select {
 }
 
 .verse {
-  flex: 1 1 auto;
-  min-width: 0;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: clamp(0.4rem, 1vh, 0.9rem) clamp(1rem, 4vw, 5rem);
 }
 
 .verse-body {
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -872,24 +882,36 @@ select {
   transform: none;
 }
 
+/*
+ * Clamp the text to the footer box so a long verse shrinks rather than
+ * overflowing. `-webkit-line-clamp` keeps it to two lines maximum.
+ */
 .verse-arabic {
   margin: 0;
   font-family: var(--font-arabic);
-  font-size: clamp(1.3rem, 2.9vw, 3.4rem);
-  line-height: 1.8;
+  font-size: clamp(1.1rem, 2.5vw, 3rem);
+  line-height: 1.7;
   color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .verse-english {
   margin: 0;
-  font-size: clamp(0.95rem, 1.75vw, 2rem);
+  font-size: clamp(0.85rem, 1.5vw, 1.75rem);
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .verse-ref {
-  font-size: clamp(0.62rem, 1vw, 1.1rem);
+  font-size: clamp(0.6rem, 0.95vw, 1.05rem);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;

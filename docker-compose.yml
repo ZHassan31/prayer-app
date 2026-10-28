@@ -1,0 +1,46 @@
+# Prayer Times — Proxmox LXC deployment
+#
+# Copy this file to the LXC container (e.g. /opt/prayer-app/docker-compose.yml)
+# and run:  docker compose up -d
+#
+# The image is built by GitHub Actions on every push to main and published to
+# GHCR. Watchtower polls GHCR and restarts the container when a new image
+# appears, so merging to main is all you need to do.
+
+services:
+  prayer-app:
+    image: ghcr.io/CHANGE_ME/prayer-app:latest
+    container_name: prayer-app
+    restart: unless-stopped
+    ports:
+      # host:container — change the left side if port 80 is taken.
+      - "80:80"
+    environment:
+      - TZ=Europe/London
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      # Watchtower only touches containers with this label enabled.
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Needed to pull from a private GHCR package. Create the file with:
+      #   docker login ghcr.io -u <github-user> --password-stdin
+      # then copy ~/.docker/config.json to ./watchtower-config/config.json
+      - ./watchtower-config:/config:ro
+    environment:
+      - DOCKER_CONFIG=/config
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_ROLLING_RESTART=true
+      - TZ=Europe/London

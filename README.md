@@ -125,7 +125,7 @@ systemctl enable --now docker
 2. Go to **Settings → Actions → General → Workflow permissions** and select
    **Read and write permissions**. This lets the workflow push to GHCR.
 3. Push to `main`. The workflow builds and publishes
-   `ghcr.io/<your-user>/<your-repo>:latest`.
+   `ghcr.io/zhassan31/prayer-app:latest`.
 
 #### 5. Make the package pullable
 
@@ -149,11 +149,11 @@ By default a GHCR package is **private**. Either:
 mkdir -p /opt/prayer-app && cd /opt/prayer-app
 ```
 
-Copy `docker-compose.yml` from this repo into `/opt/prayer-app/`, then edit the
-image line to match your repo:
+Copy `docker-compose.yml` from this repo into `/opt/prayer-app/`. The image line
+already points at your repo:
 
 ```yaml
-image: ghcr.io/<your-user>/<your-repo>:latest
+image: ghcr.io/zhassan31/prayer-app:latest
 ```
 
 Also set `TZ` to your timezone. Then:
@@ -193,7 +193,7 @@ If you'd rather not use GitHub Actions, build on the LXC itself:
 
 ```bash
 apt install -y git
-git clone https://github.com/<your-user>/<your-repo>.git /opt/prayer-app-src
+git clone https://github.com/zhassan31/prayer-app.git /opt/prayer-app-src
 cd /opt/prayer-app-src
 docker build -t prayer-app:local .
 docker run -d --name prayer-app --restart unless-stopped -p 80:80 prayer-app:local

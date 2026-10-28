@@ -9,7 +9,7 @@
 
 services:
   prayer-app:
-    image: ghcr.io/CHANGE_ME/prayer-app:latest
+    image: ghcr.io/zhassan31/prayer-app:latest
     container_name: prayer-app
     restart: unless-stopped
     ports:

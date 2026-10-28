@@ -86,12 +86,27 @@ In the Proxmox web UI: **Create CT**.
 
 #### 2. Enable Docker inside the LXC
 
-Docker needs a couple of tweaks to run in an unprivileged LXC. Run these **on the
-Proxmox host** (replace `100` with your container ID):
+Docker needs a couple of tweaks to run in an unprivileged LXC.
+
+> ⚠️ **This step runs on the Proxmox HOST, not inside the container.**
+> `/etc/pve` only exists on the host. If you see
+> `-bash: /etc/pve/lxc/102.conf: No such file or directory`, you are inside the
+> container — run `exit` first.
+>
+> | Prompt | Where you are | Has `/etc/pve`? |
+> | --- | --- | --- |
+> | `root@pve:~#` | Proxmox host | ✅ |
+> | `root@prayer:~#` | Inside the LXC | ❌ |
+>
+> Not sure? Run `ls /etc/pve >/dev/null 2>&1 && echo HOST || echo CONTAINER`.
+> You can also use **Datacenter → your node → Shell** in the web UI, which is
+> always the host.
+
+On the **host** (replace `102` with your container ID):
 
 ```bash
 # Allow the container to use the overlay filesystem and create devices
-cat >> /etc/pve/lxc/100.conf <<'EOF'
+cat >> /etc/pve/lxc/102.conf <<'EOF'
 features: nesting=1,keyctl=1
 lxc.apparmor.profile: unconfined
 lxc.cgroup2.devices.allow: a
@@ -99,24 +114,33 @@ lxc.cap.drop:
 EOF
 ```
 
-Then restart the container:
+Then restart the container — also on the host:
 
 ```bash
-pct stop 100 && pct start 100
+pct stop 102 && pct start 102
 ```
 
-> If you'd rather avoid these tweaks, create a **privileged** container instead,
-> or use a small VM. Both work fine.
+> If you'd rather avoid these tweaks, create a **privileged** container instead
+> (uncheck "Unprivileged container" in the Create CT wizard), or use a small VM.
+> Both work fine.
 
 #### 3. Install Docker inside the container
 
+Now enter the container — the prompt will change to the container's hostname:
+
 ```bash
-pct enter 100
+pct enter 102
 
 apt update && apt upgrade -y
 apt install -y curl ca-certificates
 curl -fsSL https://get.docker.com | sh
 systemctl enable --now docker
+```
+
+Verify it works:
+
+```bash
+docker run --rm hello-world
 ```
 
 #### 4. Publish the image from GitHub
@@ -311,9 +335,15 @@ fine-tune.
 Reload the page. If it persists, check `docker compose logs watchtower` on the
 LXC to confirm the new image was pulled.
 
+**`/etc/pve/lxc/102.conf: No such file or directory`**
+You're inside the container. `/etc/pve` only exists on the Proxmox host. Run
+`exit` to get back to the host (prompt becomes `root@pve:~#`), then re-run the
+command. See step 2 above.
+
 **Container won't start / Docker fails in LXC**
 Re-check the `features: nesting=1` and `lxc.apparmor.profile: unconfined` lines
-in `/etc/pve/lxc/<id>.conf`, then restart the container.
+in `/etc/pve/lxc/<id>.conf` — edited **on the host** — then restart the container
+with `pct stop <id> && pct start <id>`.
 
 **Port 80 is already in use**
 Change the left side of the port mapping in `docker-compose.yml`, e.g. `"8080:80"`,

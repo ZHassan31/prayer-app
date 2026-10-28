@@ -17,21 +17,16 @@ export function PrayerList({
   now,
 }: Props) {
   /* Show today's six events (yesterday/tomorrow are only for lookups). */
-  const today = schedule.filter((entry) => {
-    const day = new Intl.DateTimeFormat('en-CA', {
+  const dayKey = (date: Date) =>
+    new Intl.DateTimeFormat('en-CA', {
       timeZone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-    }).format(entry.time);
-    const todayKey = new Intl.DateTimeFormat('en-CA', {
-      timeZone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(now);
-    return day === todayKey;
-  });
+    }).format(date);
+
+  const todayKey = dayKey(now);
+  const today = schedule.filter((entry) => dayKey(entry.time) === todayKey);
 
   const rows = today.length > 0 ? today : schedule.slice(0, 6);
 

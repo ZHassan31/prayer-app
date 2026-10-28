@@ -12,6 +12,9 @@ services:
     image: ghcr.io/zhassan31/prayer-app:latest
     container_name: prayer-app
     restart: unless-stopped
+    # Always check the registry on `docker compose up`, so a manual restart
+    # is enough to pick up a new image even if Watchtower is down.
+    pull_policy: always
     ports:
       # host:container — change the left side if port 80 is taken.
       - "80:80"
@@ -32,7 +35,10 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   watchtower:
-    image: containrrr/watchtower:latest
+    # The original containrrr/watchtower is unmaintained and ships a Docker
+    # client that is too old for Docker 25+ ("client version 1.25 is too old").
+    # This is the actively maintained fork.
+    image: nickfedor/watchtower:latest
     container_name: watchtower
     restart: unless-stopped
     volumes:

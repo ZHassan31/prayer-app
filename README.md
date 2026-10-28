@@ -443,6 +443,34 @@ fine-tune.
 Reload the page. If it persists, check `docker compose logs watchtower` on the
 LXC to confirm the new image was pulled.
 
+**Watchtower logs `client version 1.25 is too old`**
+The original `containrrr/watchtower` image is unmaintained and its Docker client
+is too old for Docker 25+. The compose file uses the maintained fork
+`nickfedor/watchtower` instead. If you copied an older compose file, update it:
+
+```bash
+cd /opt/prayer-app
+curl -O https://raw.githubusercontent.com/ZHassan31/prayer-app/main/docker-compose.yml
+docker compose up -d
+```
+
+**The container runs an old image even though the build succeeded**
+`docker compose up -d` reuses a locally cached image. Force a pull:
+
+```bash
+docker compose pull prayer-app
+docker compose up -d
+```
+
+The compose file sets `pull_policy: always`, so this shouldn't happen once
+you're on the current version. Verify what's actually running:
+
+```bash
+curl -s http://localhost/version.json
+```
+
+The `buildId` starts with the commit SHA — compare it to `git log -1` on `main`.
+
 **`/etc/pve/lxc/102.conf: No such file or directory`**
 You're inside the container. `/etc/pve` only exists on the Proxmox host. Run
 `exit` to get back to the host (prompt becomes `root@pve:~#`), then re-run the

@@ -122,9 +122,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme='mint'] .qibla-arrow {
-  color: #4ade80;
-}
+
 
 [data-theme='emerald'] {
   --bg: #04120e;
@@ -520,44 +518,6 @@ select {
 .prayer-row.is-next .row-arabic {
   color: var(--accent);
   opacity: 0.6;
-}
-
-/* ---------- Qibla ---------- */
-
-.qibla {
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-  padding: clamp(0.5rem, 1.2vh, 1rem) clamp(0.8rem, 1.4vw, 1.4rem);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.qibla-label {
-  font-size: clamp(0.7rem, 1.05vw, 1.1rem);
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-
-.qibla-value {
-  margin-left: auto;
-  font-size: clamp(0.85rem, 1.3vw, 1.4rem);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-dim);
-}
-
-.qibla-arrow {
-  display: inline-block;
-  font-size: clamp(1rem, 1.6vw, 1.7rem);
-  line-height: 1;
-  color: var(--accent);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ---------- Settings overlay ---------- */

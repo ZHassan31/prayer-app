@@ -9,7 +9,6 @@ import {
   civilDateInTimeZone,
   pickSelection,
   prayerProgress,
-  qiblaBearing,
 } from './lib/prayer';
 import {
   applyConfig,
@@ -77,8 +76,6 @@ export default function App() {
     [selection, now],
   );
 
-  const qibla = useMemo(() => qiblaBearing(settings), [settings]);
-
   /* Hide the mouse pointer on the TV after a few idle seconds. */
   useEffect(() => {
     let timer = window.setTimeout(() => setCursorIdle(true), 3000);
@@ -140,7 +137,6 @@ export default function App() {
         schedule={schedule}
         selection={selection}
         progress={progress}
-        qibla={qibla}
         now={now}
         onOpenSettings={() => setSettingsOpen(true)}
         showSettingsButton={!KIOSK}

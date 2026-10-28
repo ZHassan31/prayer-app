@@ -1,10 +1,4 @@
-import {
-  CalculationMethod,
-  Coordinates,
-  Madhab,
-  PrayerTimes,
-  Qibla,
-} from 'adhan';
+import { CalculationMethod, Coordinates, Madhab, PrayerTimes } from 'adhan';
 
 /* ------------------------------------------------------------------ *
  * Prayer keys
@@ -174,11 +168,6 @@ export function pickSelection(
   }
 
   return { next, previous, current: previous };
-}
-
-/** Qibla bearing in degrees from true north. */
-export function qiblaBearing(settings: PrayerSettings): number {
-  return Qibla(new Coordinates(settings.latitude, settings.longitude));
 }
 
 /** Progress (0–1) between the previous and next prayer. */

@@ -12,7 +12,6 @@ interface Props {
   schedule: PrayerEntry[];
   selection: Selection;
   progress: number;
-  qibla: number;
   now: Date;
   onOpenSettings: () => void;
   showSettingsButton: boolean;
@@ -23,7 +22,6 @@ export function PrayerBoard({
   schedule,
   selection,
   progress,
-  qibla,
   now,
   onOpenSettings,
   showSettingsButton,
@@ -143,18 +141,6 @@ export function PrayerBoard({
             use24Hour={settings.use24Hour}
             now={now}
           />
-
-          <div className="qibla">
-            <span className="qibla-label">Qibla</span>
-            <span className="qibla-value">{Math.round(qibla)}°</span>
-            <span
-              className="qibla-arrow"
-              style={{ transform: `rotate(${qibla}deg)` }}
-              aria-hidden="true"
-            >
-              ↑
-            </span>
-          </div>
         </aside>
       </main>
 

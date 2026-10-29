@@ -9,6 +9,7 @@ import {
   type PrayerKey,
 } from '../lib/prayer';
 import {
+  ADHAN_PRAYER_KEYS,
   DEFAULT_SETTINGS,
   THEMES,
   THEME_KEYS,
@@ -26,6 +27,8 @@ interface Props {
   managed?: boolean;
   onSave: (settings: Settings) => void;
   onClose?: () => void;
+  /** Plays the adhan once so the user can check volume. */
+  onTestAdhan?: (volume: number) => void;
 }
 
 export function SettingsPanel({
@@ -34,6 +37,7 @@ export function SettingsPanel({
   managed = false,
   onSave,
   onClose,
+  onTestAdhan,
 }: Props) {
   const [draft, setDraft] = useState<Settings>(initial);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
@@ -268,6 +272,66 @@ export function SettingsPanel({
                 />
                 <span>24-hour clock</span>
               </label>
+            </div>
+          </section>
+
+          <section className="field-group">
+            <h3>Adhan</h3>
+
+            <div className="toggles">
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={draft.adhanEnabled}
+                  onChange={(e) => update('adhanEnabled', e.target.checked)}
+                />
+                <span>Play adhan at prayer time</span>
+              </label>
+            </div>
+
+            <label className="field">
+              <span>Volume ({Math.round(draft.adhanVolume * 100)}%)</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={draft.adhanVolume}
+                onChange={(e) => update('adhanVolume', Number(e.target.value))}
+              />
+            </label>
+
+            <div className="adjustment-grid">
+              {ADHAN_PRAYER_KEYS.map((key) => (
+                <label key={key} className="toggle">
+                  <input
+                    type="checkbox"
+                    checked={draft.adhanPrayers.includes(key)}
+                    onChange={(e) =>
+                      update(
+                        'adhanPrayers',
+                        e.target.checked
+                          ? [...draft.adhanPrayers, key]
+                          : draft.adhanPrayers.filter((k) => k !== key),
+                      )
+                    }
+                  />
+                  <span>{PRAYER_META[key].label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="inline-actions">
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => onTestAdhan?.(draft.adhanVolume)}
+              >
+                ▶ Test adhan
+              </button>
+              <span className="hint">
+                Browsers block audio until you interact with the page once.
+              </span>
             </div>
           </section>
         </div>

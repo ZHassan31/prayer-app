@@ -23,6 +23,9 @@ export interface AppConfig {
   use24Hour?: boolean;
   hijriOffset?: number;
   adjustments?: Record<string, number>;
+  adhanEnabled?: boolean;
+  adhanVolume?: number;
+  adhanPrayers?: string[];
 }
 
 let cached: AppConfig = {};
@@ -54,6 +57,17 @@ function sanitize(raw: unknown): AppConfig {
   if (typeof input.madhab === 'string') out.madhab = input.madhab;
   if (typeof input.theme === 'string') out.theme = input.theme;
   if (typeof input.use24Hour === 'boolean') out.use24Hour = input.use24Hour;
+  if (typeof input.adhanEnabled === 'boolean') {
+    out.adhanEnabled = input.adhanEnabled;
+  }
+  if (isFiniteNumber(input.adhanVolume)) {
+    out.adhanVolume = Math.min(1, Math.max(0, input.adhanVolume));
+  }
+  if (Array.isArray(input.adhanPrayers)) {
+    out.adhanPrayers = input.adhanPrayers.filter(
+      (key): key is string => typeof key === 'string',
+    );
+  }
   if (isFiniteNumber(input.hijriOffset)) {
     out.hijriOffset = Math.min(3, Math.max(-3, Math.round(input.hijriOffset)));
   }

@@ -346,6 +346,9 @@ without rebuilding anything.
 | `use24Hour` | boolean | |
 | `hijriOffset` | number | −3 to 3 |
 | `adjustments` | object | Per-prayer minutes, −60 to 60 |
+| `adhanEnabled` | boolean | Play audio at prayer time |
+| `adhanVolume` | number | 0 to 1 |
+| `adhanPrayers` | string[] | Which prayers play. Default: dhuhr, asr, maghrib, isha |
 
 > There is no place-name field. Coordinates are all that's needed to compute
 > the times, so nothing identifying is stored or displayed.
@@ -370,6 +373,44 @@ Two mechanisms work together:
 So a TV left on for weeks still picks up a new deploy without anyone touching
 it. A 30-second cooldown guard prevents a reload loop if a browser serves a
 cached HTML shell alongside a fresh `version.json`.
+
+### Adhan audio
+
+The adhan plays automatically when a prayer time arrives. Three things to know:
+
+**1. The recording lives at `public/Adhan-Makkah.mp3`.** Replace that file to
+change the audio (same filename). It is served from the app's own origin, so
+there are no external requests at prayer time.
+
+If you would rather keep audio out of the repo, mount it instead:
+
+```yaml
+volumes:
+  - ./Adhan-Makkah.mp3:/usr/share/nginx/html/Adhan-Makkah.mp3:ro
+```
+
+and add `public/Adhan-Makkah.mp3` to `.gitignore`.
+
+**Fajr is off by default.** The dawn adhan is very loud in a quiet house, so
+only Dhuhr, Asr, Maghrib and Isha play unless you enable Fajr in settings.
+
+**2. Browsers block autoplay until the page is touched once.** This is a
+browser policy, not something the app can bypass — `?kiosk` does not help. On a
+TV that is never interacted with, the first adhan after a power cycle may be
+silently blocked. Touch the screen or press any key once after setup and audio
+then works for that session.
+
+**3. Guardrails.** The adhan only fires if:
+
+- the prayer is one of Dhuhr, Asr, Maghrib, Isha by default (Fajr is opt-in;
+  Sunrise never plays),
+- it is enabled for that prayer in settings,
+- the current time is within **2 minutes** of the prayer time (so a TV that
+  wakes hours later does not play a stale adhan),
+- it has not already played today (stored in `localStorage`).
+
+That last point means a page reload or Watchtower restart will not replay an
+adhan you have already heard.
 
 ### Per-device settings
 

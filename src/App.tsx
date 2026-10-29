@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PrayerBoard } from './components/PrayerBoard';
 import { SettingsPanel } from './components/SettingsPanel';
+import { useAdhan } from './hooks/useAdhan';
 import { useNow } from './hooks/useNow';
 import { useWakeLock } from './hooks/useWakeLock';
+import { findDueAdhan, markAdhanPlayed } from './lib/adhan';
 import { loadConfig, type AppConfig } from './lib/config';
 import {
   buildSchedule,
@@ -11,14 +13,30 @@ import {
   prayerProgress,
 } from './lib/prayer';
 import {
+  ADHAN_PRAYER_KEYS,
   applyConfig,
   loadSettings,
   saveSettings,
+  type AdhanPrayerKey,
   type Settings,
 } from './lib/settings';
+
+/** Narrows a prayer key to one that has an adhan (sunrise never does). */
+function isAdhanPrayerKey(
+  key: string,
+): key is AdhanPrayerKey {
+  return (ADHAN_PRAYER_KEYS as string[]).includes(key);
+}
 import { useAutoReload } from './lib/version';
 
 const KIOSK = new URLSearchParams(window.location.search).has('kiosk');
+
+/**
+ * Bundled adhan audio. Served from the public dir, so it is cached and needs
+ * no network at prayer time. Replace public/Adhan-Makkah.mp3 to change it.
+ */
+export const ADHAN_SRC = '/Adhan-Makkah.mp3';
+
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
@@ -26,6 +44,8 @@ export default function App() {
   const [configReady, setConfigReady] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cursorIdle, setCursorIdle] = useState(false);
+
+  const { play: playAdhan } = useAdhan();
 
   // The countdown shows seconds, so tick once per second.
   const now = useNow(1000);
@@ -75,6 +95,35 @@ export default function App() {
     () => prayerProgress(selection.previous, selection.next, now),
     [selection, now],
   );
+
+  /*
+   * Play the adhan when a prayer time arrives.
+   *
+   * Runs on every tick, so the trigger window is one second wide at the
+   * point of arrival. The grace period and the per-day dedupe key mean a
+   * sleeping or rebooting TV cannot replay an old adhan or miss one twice.
+   */
+  useEffect(() => {
+    if (!settings.adhanEnabled) return;
+
+    const due = findDueAdhan(schedule, now);
+    if (!due) return;
+    if (!isAdhanPrayerKey(due.key)) return;
+    if (!settings.adhanPrayers.includes(due.key)) return;
+
+    // Mark first: if playback is blocked we still don't want to retry every
+    // second, or the TV would spam attempts for the whole grace window.
+    markAdhanPlayed(due, now);
+
+    void playAdhan(ADHAN_SRC, settings.adhanVolume);
+  }, [
+    now,
+    schedule,
+    settings.adhanEnabled,
+    settings.adhanPrayers,
+    settings.adhanVolume,
+    playAdhan,
+  ]);
 
   /* Hide the mouse pointer on the TV after a few idle seconds. */
   useEffect(() => {
@@ -149,6 +198,7 @@ export default function App() {
           managed={managed}
           onSave={handleSave}
           onClose={firstRun ? undefined : () => setSettingsOpen(false)}
+          onTestAdhan={(volume) => void playAdhan(ADHAN_SRC, volume)}
         />
       )}
     </div>

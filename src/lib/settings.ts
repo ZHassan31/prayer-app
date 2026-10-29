@@ -23,9 +23,38 @@ export interface Settings {
   use24Hour: boolean;
   hijriOffset: number;
   theme: ThemeKey;
+  /** Play the adhan audio when a prayer time arrives. */
+  adhanEnabled: boolean;
+  /** 0 = muted, 1 = full volume. */
+  adhanVolume: number;
+  /** Which prayer times should play. Sunrise is never included. */
+  adhanPrayers: AdhanPrayerKey[];
   /** Set once the user has saved their own location. */
   configured: boolean;
 }
+
+export type AdhanPrayerKey = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+
+export const ADHAN_PRAYER_KEYS: AdhanPrayerKey[] = [
+  'fajr',
+  'dhuhr',
+  'asr',
+  'maghrib',
+  'isha',
+];
+
+/**
+ * Which prayers play the adhan by default.
+ *
+ * Fajr is deliberately excluded: the adhan at dawn is very loud in a silent
+ * house. It can still be switched on per device or via config.json.
+ */
+export const DEFAULT_ADHAN_PRAYERS: AdhanPrayerKey[] = [
+  'dhuhr',
+  'asr',
+  'maghrib',
+  'isha',
+];
 
 const STORAGE_KEY = 'prayer-app.settings.v1';
 
@@ -48,6 +77,9 @@ export const DEFAULT_SETTINGS: Settings = {
   use24Hour: true,
   hijriOffset: 0,
   theme: 'mint',
+  adhanEnabled: false,
+  adhanVolume: 0.8,
+  adhanPrayers: [...DEFAULT_ADHAN_PRAYERS],
   configured: false,
 };
 
@@ -104,8 +136,28 @@ export function normalizeSettings(raw: unknown): Settings {
       input.theme === 'mint'
         ? input.theme
         : 'mint',
+    adhanEnabled:
+      typeof input.adhanEnabled === 'boolean'
+        ? input.adhanEnabled
+        : DEFAULT_SETTINGS.adhanEnabled,
+    adhanVolume: clampNumber(
+      input.adhanVolume,
+      0,
+      1,
+      DEFAULT_SETTINGS.adhanVolume,
+    ),
+    adhanPrayers: normalizeAdhanPrayers(input.adhanPrayers),
     configured: input.configured === true,
   };
+}
+
+/** Keeps only known prayer keys, falling back to all of them. */
+function normalizeAdhanPrayers(raw: unknown): AdhanPrayerKey[] {
+  if (!Array.isArray(raw)) return [...DEFAULT_ADHAN_PRAYERS];
+
+  const kept = ADHAN_PRAYER_KEYS.filter((key) => raw.includes(key));
+  // An explicit empty list is respected (the user turned them all off).
+  return raw.length === 0 ? [] : kept;
 }
 
 export function loadSettings(): Settings {
@@ -153,6 +205,11 @@ export function applyConfig(
     theme: (config.theme as Settings['theme']) ?? settings.theme,
     use24Hour: config.use24Hour ?? settings.use24Hour,
     hijriOffset: config.hijriOffset ?? settings.hijriOffset,
+    adhanEnabled: config.adhanEnabled ?? settings.adhanEnabled,
+    adhanVolume: config.adhanVolume ?? settings.adhanVolume,
+    adhanPrayers: normalizeAdhanPrayers(
+      config.adhanPrayers ?? settings.adhanPrayers,
+    ),
     adjustments: config.adjustments
       ? { ...settings.adjustments, ...config.adjustments }
       : settings.adjustments,
@@ -168,6 +225,9 @@ export function applyConfig(
     next.theme !== settings.theme ||
     next.use24Hour !== settings.use24Hour ||
     next.hijriOffset !== settings.hijriOffset ||
+    next.adhanEnabled !== settings.adhanEnabled ||
+    next.adhanVolume !== settings.adhanVolume ||
+    JSON.stringify(next.adhanPrayers) !== JSON.stringify(settings.adhanPrayers) ||
     JSON.stringify(next.adjustments) !== JSON.stringify(settings.adjustments) ||
     next.configured !== settings.configured;
 

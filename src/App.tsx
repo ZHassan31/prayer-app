@@ -45,7 +45,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cursorIdle, setCursorIdle] = useState(false);
 
-  const { play: playAdhan } = useAdhan();
+  const { play: playAdhan, stop: stopAdhan, status: adhanStatus } = useAdhan();
 
   // The countdown shows seconds, so tick once per second.
   const now = useNow(1000);
@@ -199,6 +199,8 @@ export default function App() {
           onSave={handleSave}
           onClose={firstRun ? undefined : () => setSettingsOpen(false)}
           onTestAdhan={(volume) => void playAdhan(ADHAN_SRC, volume)}
+          onStopAdhan={stopAdhan}
+          adhanStatus={adhanStatus}
         />
       )}
     </div>

@@ -29,6 +29,10 @@ interface Props {
   onClose?: () => void;
   /** Plays the adhan once so the user can check volume. */
   onTestAdhan?: (volume: number) => void;
+  /** Stops playback started by the test button. */
+  onStopAdhan?: () => void;
+  /** Current playback state, used to explain a blocked autoplay. */
+  adhanStatus?: 'idle' | 'playing' | 'blocked' | 'error';
 }
 
 export function SettingsPanel({
@@ -38,6 +42,8 @@ export function SettingsPanel({
   onSave,
   onClose,
   onTestAdhan,
+  onStopAdhan,
+  adhanStatus = 'idle',
 }: Props) {
   const [draft, setDraft] = useState<Settings>(initial);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
@@ -289,6 +295,30 @@ export function SettingsPanel({
               </label>
             </div>
 
+            {/* Test controls sit directly under the toggle so they are easy
+                to find without scrolling to the bottom of the panel. */}
+            <div className="inline-actions">
+              <button
+                type="button"
+                className="button primary"
+                onClick={() => onTestAdhan?.(draft.adhanVolume)}
+              >
+                ▶ Play adhan now
+              </button>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => onStopAdhan?.()}
+              >
+                ■ Stop
+              </button>
+              <span className="hint">
+                {adhanStatus === 'blocked'
+                  ? 'Blocked by the browser — click anywhere on the page first.'
+                  : 'Plays the full adhan so you can check the volume.'}
+              </span>
+            </div>
+
             <label className="field">
               <span>Volume ({Math.round(draft.adhanVolume * 100)}%)</span>
               <input
@@ -321,18 +351,6 @@ export function SettingsPanel({
               ))}
             </div>
 
-            <div className="inline-actions">
-              <button
-                type="button"
-                className="button ghost"
-                onClick={() => onTestAdhan?.(draft.adhanVolume)}
-              >
-                ▶ Test adhan
-              </button>
-              <span className="hint">
-                Browsers block audio until you interact with the page once.
-              </span>
-            </div>
           </section>
         </div>
 

@@ -77,7 +77,8 @@ export const DEFAULT_SETTINGS: Settings = {
   use24Hour: true,
   hijriOffset: 0,
   theme: 'mint',
-  adhanEnabled: false,
+  // On by default: the adhan plays for every prayer except Fajr.
+  adhanEnabled: true,
   adhanVolume: 0.8,
   adhanPrayers: [...DEFAULT_ADHAN_PRAYERS],
   configured: false,

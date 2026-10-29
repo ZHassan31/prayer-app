@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PrayerBoard } from './components/PrayerBoard';
 import { SettingsPanel } from './components/SettingsPanel';
 import { useAdhan } from './hooks/useAdhan';
+import { useConfigWatcher } from './hooks/useConfigWatcher';
 import { useNow } from './hooks/useNow';
 import { useWakeLock } from './hooks/useWakeLock';
 import { findDueAdhan, markAdhanPlayed } from './lib/adhan';
@@ -52,27 +53,39 @@ export default function App() {
   useWakeLock(true);
   useAutoReload(60_000);
 
-  /* Load runtime config once. It is authoritative, so every device converges. */
+  /*
+   * Applies a config object to state. Server config is authoritative, so every
+   * device converges on the same values.
+   */
+  const applyLoadedConfig = useCallback((loaded: AppConfig) => {
+    setConfig(loaded);
+    setSettings((current) => {
+      const { settings: next, changed } = applyConfig(current, loaded);
+      if (changed) saveSettings(next);
+      return next;
+    });
+  }, []);
+
+  /* Load runtime config once, before the first paint of real data. */
   useEffect(() => {
     let cancelled = false;
 
     void loadConfig().then((loaded) => {
       if (cancelled) return;
-
-      setConfig(loaded);
-      setSettings((current) => {
-        const { settings: next, changed } = applyConfig(current, loaded);
-        if (changed) saveSettings(next);
-        return next;
-      });
-
+      applyLoadedConfig(loaded);
       setConfigReady(true);
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyLoadedConfig]);
+
+  /*
+   * Keep watching config.json. Editing it on the server does not change the
+   * build id, so useAutoReload will not notice — this does.
+   */
+  useConfigWatcher(60_000, applyLoadedConfig);
 
   /* Recompute the schedule only when the civil day changes. */
   const dayKey = useMemo(() => {

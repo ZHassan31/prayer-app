@@ -40,7 +40,17 @@ sudo apt-get install -y --no-install-recommends \
   chromium \
   x11-xserver-utils \
   openssh-server \
-  curl
+  curl \
+  systemd-timesyncd
+
+# ---------- 1b. Clock synchronisation ----------
+
+# A kiosk that shows prayer times is useless with a wrong clock, and the
+# Debian live image ships no NTP daemon at all. Without this the machine
+# drifts (or boots an hour off) and every displayed time is wrong.
+echo "==> Enabling NTP time sync"
+sudo systemctl enable --now systemd-timesyncd
+sudo timedatectl set-ntp true 2>/dev/null || true
 
 # ---------- 2. Autologin ----------
 

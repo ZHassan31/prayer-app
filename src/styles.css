@@ -499,6 +499,45 @@ select {
   letter-spacing: 0.02em;
 }
 
+/* Right-hand side of the headline: the readings beyond temperature. */
+.weather-details {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.1rem, 0.35vh, 0.3rem);
+  margin: 0 0 0 auto;
+  padding-left: clamp(0.4rem, 0.8vw, 0.9rem);
+  border-left: 1px solid var(--border);
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+.weather-detail {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.5em;
+  font-size: clamp(0.6rem, 0.9vw, 0.95rem);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.weather-detail dt {
+  color: var(--text-faint);
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+}
+
+.weather-detail dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.weather-detail-unit {
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
 /* ---- hourly conditions ---- */
 
 .weather-hours {

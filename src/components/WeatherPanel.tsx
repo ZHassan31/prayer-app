@@ -4,6 +4,7 @@ import {
   hourLabel,
   isStale,
   weekdayLabel,
+  windDirection,
   type Weather,
   type WeatherDay,
 } from '../lib/weather';
@@ -83,6 +84,31 @@ export function WeatherPanel({
             H:{temp(today.tempMax)} L:{temp(today.tempMin)}
           </span>
         </div>
+
+        {/* Fills the empty right-hand side of the headline with the
+            readings people actually look for beyond temperature. */}
+        <dl className="weather-details">
+          <div className="weather-detail">
+            <dt>Humidity</dt>
+            <dd>{Math.round(current.humidity)}%</dd>
+          </div>
+          <div className="weather-detail">
+            <dt>Wind</dt>
+            <dd>
+              {Math.round(current.windSpeed)}
+              <span className="weather-detail-unit"> km/h</span>{' '}
+              {windDirection(current.windDirection)}
+            </dd>
+          </div>
+          <div className="weather-detail">
+            <dt>Rain</dt>
+            <dd>
+              {current.precipitation > 0
+                ? `${current.precipitation.toFixed(1)} mm`
+                : 'None'}
+            </dd>
+          </div>
+        </dl>
       </div>
 
       {/* ---- hourly conditions ---- */}

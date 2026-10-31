@@ -505,17 +505,15 @@ select {
 /* Right-hand side of the headline: the readings beyond temperature. */
 .weather-details {
   display: grid;
-  /* Shrink-to-fit columns so each label/value pair stays compact, then
-     spread the pairs evenly across the track with equal space around
-     them - no dead space, nothing jammed against the edges. */
+  /* Compact 2x2 block: shrink-to-fit columns, centred both ways in the
+     flexible track so the readings sit as a tidy cluster in the middle
+     rather than being stretched out to the edges. */
   grid-template-columns: repeat(2, auto);
-  justify-content: space-between;
-  /* Rows hug the top and bottom of the headline so the block fills the
-     full height instead of floating in the middle. */
-  align-content: space-between;
+  justify-content: center;
+  align-content: center;
   align-self: stretch;
-  column-gap: clamp(0.75rem, 1.6vw, 1.8rem);
-  row-gap: clamp(0.15rem, 0.5vh, 0.4rem);
+  column-gap: clamp(1rem, 2.2vw, 2.4rem);
+  row-gap: clamp(0.2rem, 0.7vh, 0.5rem);
   margin: 0;
   padding-left: clamp(0.5rem, 1vw, 1.1rem);
   border-left: 1px solid var(--border);

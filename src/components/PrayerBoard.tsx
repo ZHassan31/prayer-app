@@ -151,6 +151,7 @@ export function PrayerBoard({
             weather={weather}
             loading={weatherLoading}
             timezone={settings.timezone}
+            use24Hour={settings.use24Hour}
             now={now}
           />
         </aside>

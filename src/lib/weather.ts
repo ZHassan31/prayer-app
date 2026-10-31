@@ -20,6 +20,9 @@ const API = 'https://api.open-meteo.com/v1/forecast';
 /** How stale `current.time` may be before we flag the reading. */
 export const STALE_AFTER_MS = 45 * 60 * 1000;
 
+/** How many hourly steps the "Conditions" strip shows. */
+export const HOUR_COUNT = 6;
+
 export interface WeatherCurrent {
   /** When the model value is valid for. */
   time: Date;
@@ -31,6 +34,13 @@ export interface WeatherCurrent {
   windSpeed: number;
   windDirection: number;
   isDay: boolean;
+}
+
+export interface WeatherHour {
+  time: Date;
+  temperature: number;
+  weatherCode: number;
+  precipitationProbability: number;
 }
 
 export interface WeatherDay {
@@ -46,6 +56,9 @@ export interface WeatherDay {
 
 export interface Weather {
   current: WeatherCurrent;
+  /** The next few hours, starting at the current hour. */
+  hours: WeatherHour[];
+  /** Today first, then the following days. */
   days: WeatherDay[];
   /** When this payload was received by the browser. */
   fetchedAt: Date;
@@ -118,7 +131,7 @@ export function buildWeatherUrl(
   latitude: number,
   longitude: number,
   timezone: string,
-  forecastDays = 6,
+  forecastDays = 7,
 ): string {
   const params = new URLSearchParams({
     latitude: String(latitude),
@@ -133,6 +146,9 @@ export function buildWeatherUrl(
       'wind_speed_10m',
       'wind_direction_10m',
     ].join(','),
+    hourly: ['temperature_2m', 'weather_code', 'precipitation_probability'].join(
+      ',',
+    ),
     daily: [
       'weather_code',
       'temperature_2m_max',
@@ -148,6 +164,18 @@ export function buildWeatherUrl(
   return `${API}?${params.toString()}`;
 }
 
+/**
+ * Open-Meteo returns local wall-clock timestamps without an offset, e.g.
+ * "2026-10-31T10:30". Parsing that directly yields a Date in the *device's*
+ * zone, which is wrong when the device zone differs from the configured one.
+ * Anchor to the reported `utc_offset_seconds` instead.
+ */
+function parseLocal(text: string, offsetSeconds: number): Date | null {
+  const ms = Date.parse(`${text}:00Z`);
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms - offsetSeconds * 1000);
+}
+
 /** Discards anything malformed so a bad payload cannot break the display. */
 function parse(raw: unknown): Weather | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -160,15 +188,9 @@ function parse(raw: unknown): Weather | null {
   const timeText = currentRaw.time;
   if (typeof timeText !== 'string') return null;
 
-  // Open-Meteo returns local wall-clock time without an offset, e.g.
-  // "2026-10-31T10:30". Parsing it as-is yields a Date in the device's own
-  // zone, which is wrong if the device zone differs from the configured one.
-  // We only ever use this for a staleness comparison, so anchor it to the
-  // reported utc_offset_seconds instead.
   const offsetSeconds = num(input.utc_offset_seconds, 0);
-  const asUtc = Date.parse(`${timeText}:00Z`);
-  if (!Number.isFinite(asUtc)) return null;
-  const currentTime = new Date(asUtc - offsetSeconds * 1000);
+  const currentTime = parseLocal(timeText, offsetSeconds);
+  if (!currentTime) return null;
 
   const current: WeatherCurrent = {
     time: currentTime,
@@ -182,6 +204,38 @@ function parse(raw: unknown): Weather | null {
     isDay: num(currentRaw.is_day) === 1,
   };
 
+  /* ---- hourly ---- */
+  const hourlyRaw = input.hourly as Record<string, unknown> | undefined;
+  const hours: WeatherHour[] = [];
+
+  if (hourlyRaw && Array.isArray(hourlyRaw.time)) {
+    const times = hourlyRaw.time as unknown[];
+    const temps = hourlyRaw.temperature_2m as unknown[] | undefined;
+    const codes = hourlyRaw.weather_code as unknown[] | undefined;
+    const pops = hourlyRaw.precipitation_probability as unknown[] | undefined;
+
+    for (let i = 0; i < times.length; i += 1) {
+      const text = times[i];
+      if (typeof text !== 'string') continue;
+      const when = parseLocal(text, offsetSeconds);
+      if (!when) continue;
+      hours.push({
+        time: when,
+        temperature: num(temps?.[i]),
+        weatherCode: num(codes?.[i]),
+        precipitationProbability: num(pops?.[i]),
+      });
+    }
+  }
+
+  // Start at the current hour so the strip reads "Now, +1, +2 …".
+  const hourStart = new Date(currentTime);
+  hourStart.setMinutes(0, 0, 0);
+  const upcoming = hours
+    .filter((hour) => hour.time.getTime() >= hourStart.getTime())
+    .slice(0, HOUR_COUNT);
+
+  /* ---- daily ---- */
   const dates = dailyRaw.time;
   if (!Array.isArray(dates)) return null;
 
@@ -209,7 +263,7 @@ function parse(raw: unknown): Weather | null {
 
   if (days.length === 0) return null;
 
-  return { current, days, fetchedAt: new Date() };
+  return { current, hours: upcoming, days, fetchedAt: new Date() };
 }
 
 export async function fetchWeather(
@@ -243,7 +297,7 @@ export function isStale(weather: Weather, now: Date): boolean {
 /** Compass point for a wind bearing in degrees. */
 export function windDirection(degrees: number): string {
   const points = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const index = Math.round(((degrees % 360) / 45)) % 8;
+  const index = Math.round((degrees % 360) / 45) % 8;
   return points[index];
 }
 
@@ -256,6 +310,19 @@ export function weekdayLabel(date: string, timezone: string): string {
     weekday: 'short',
     timeZone: timezone,
   }).format(parsed);
+}
+
+/** Hour label for the conditions strip, e.g. "14". */
+export function hourLabel(
+  time: Date,
+  timezone: string,
+  use24Hour: boolean,
+): string {
+  return new Intl.DateTimeFormat(use24Hour ? 'en-GB' : 'en-US', {
+    hour: 'numeric',
+    hour12: !use24Hour,
+    timeZone: timezone,
+  }).format(time);
 }
 
 /** "12 min ago" style label for the last successful fetch. */

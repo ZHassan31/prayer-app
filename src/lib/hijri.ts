@@ -21,6 +21,32 @@ export interface HijriDate {
 const HIJRI_LOCALE = 'en-u-ca-islamic-umalqura';
 
 /**
+ * Arabic month names, indexed 1-12 (Muharram = 1).
+ *
+ * Spelled the way Umm al-Qura renders them, so the header reads naturally
+ * in Arabic while the day and year stay in Latin digits.
+ */
+const HIJRI_MONTHS_AR = [
+  'محرم',
+  'صفر',
+  'ربيع الأول',
+  'ربيع الآخر',
+  'جمادى الأولى',
+  'جمادى الآخرة',
+  'رجب',
+  'شعبان',
+  'رمضان',
+  'شوال',
+  'ذو القعدة',
+  'ذو الحجة',
+] as const;
+
+/** Arabic name for a Hijri month number (1-12). */
+export function hijriMonthName(month: number): string {
+  return HIJRI_MONTHS_AR[month - 1] ?? '';
+}
+
+/**
  * Reads the Hijri date for an instant.
  *
  * Formatting happens in UTC against a date anchored at UTC noon, so the
@@ -64,19 +90,48 @@ export function anchorUtcNoon(
   return Date.UTC(year, month - 1, day, 12) + offsetDays * 86_400_000;
 }
 
-/** Formats a Hijri date as "Jumada I 17, 1448 AH". */
-export function formatHijriDate(date: Date, offsetDays = 0): string {
+/**
+ * Hijri date split into its three display parts.
+ *
+ * Kept separate rather than pre-joined into a string because the Arabic
+ * month name is a right-to-left run: mixing it into one string lets the
+ * bidi algorithm pull the year into that run, so "day month year" renders
+ * as "day year month". Rendering the parts as sibling elements keeps the
+ * order fixed regardless of direction.
+ */
+export interface HijriParts {
+  day: number;
+  /** Arabic month name, e.g. "جمادى الأولى". */
+  month: string;
+  year: number;
+}
+
+/** Splits a Hijri date into day, Arabic month name and year. */
+export function hijriParts(
+  date: Date,
+  offsetDays = 0,
+): HijriParts | null {
   const shifted = new Date(date.getTime() + offsetDays * 86_400_000);
-  try {
-    return new Intl.DateTimeFormat(HIJRI_LOCALE, {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(shifted);
-  } catch {
-    return '';
-  }
+  const parts = hijriDate(shifted);
+  if (!parts) return null;
+
+  const month = hijriMonthName(parts.month);
+  if (!month) return null;
+
+  return { day: parts.day, month, year: parts.year };
+}
+
+/**
+ * Formats a Hijri date as "20 جمادى الأولى 1448 AH".
+ *
+ * Only for plain-text contexts. The header renders the parts separately
+ * so the bidi algorithm cannot reorder them.
+ */
+export function formatHijriDate(date: Date, offsetDays = 0): string {
+  const parts = hijriParts(date, offsetDays);
+  if (!parts) return '';
+
+  return `${parts.day} ${parts.month} ${parts.year} AH`;
 }
 
 /**

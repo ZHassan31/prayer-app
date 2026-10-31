@@ -1,4 +1,4 @@
-import { formatHijriDate } from './hijri';
+import { hijriParts, type HijriParts } from './hijri';
 
 export const pad2 = (value: number): string => String(value).padStart(2, '0');
 
@@ -33,8 +33,8 @@ export function formatHijri(
   date: Date,
   _timeZone: string,
   offsetDays: number,
-): string {
-  return formatHijriDate(date, offsetDays);
+): HijriParts | null {
+  return hijriParts(date, offsetDays);
 }
 
 export interface Countdown {

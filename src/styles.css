@@ -280,7 +280,30 @@ select {
 }
 
 .dateline-hijri {
+  /* Match the Gregorian line exactly: same size, weight and tracking, so
+     the two dates read as one consistent pair. */
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
   color: var(--text-faint);
+}
+
+/* Each part is isolated so the bidi algorithm cannot reorder them. Without
+   this the Arabic month pulls the year into its right-to-left run and the
+   date renders as "day year month". */
+.dateline-hijri-day,
+.dateline-hijri-month,
+.dateline-hijri-year,
+.dateline-hijri-era {
+  unicode-bidi: isolate;
+}
+
+/* Only the Arabic month needs the Arabic stack. Inter has no Arabic
+   glyphs and falls back per-glyph, which makes the letters collide. */
+.dateline-hijri-month {
+  font-family: var(--font-arabic);
+  /* Arabic is cursive: tracking breaks the joining, so drop it here. */
+  letter-spacing: 0;
 }
 
 .pin {
@@ -1150,7 +1173,8 @@ select {
   display: flex;
   align-items: center;
   gap: 0.4em;
-  font-size: clamp(0.7rem, 1.15vw, 1.3rem);
+  /* 50% larger than the original 0.7-1.3rem range. */
+  font-size: clamp(1.05rem, 1.725vw, 1.95rem);
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--text-faint);

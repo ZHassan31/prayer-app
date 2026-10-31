@@ -505,10 +505,11 @@ select {
 /* Right-hand side of the headline: the readings beyond temperature. */
 .weather-details {
   display: grid;
-  /* Two equal columns that stretch to fill the whole flexible track,
-     so the four readings are spread evenly with no dead space. */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  justify-content: stretch;
+  /* Shrink-to-fit columns so each label/value pair stays compact, then
+     spread the pairs evenly across the track with equal space around
+     them - no dead space, nothing jammed against the edges. */
+  grid-template-columns: repeat(2, auto);
+  justify-content: space-between;
   /* Rows hug the top and bottom of the headline so the block fills the
      full height instead of floating in the middle. */
   align-content: space-between;

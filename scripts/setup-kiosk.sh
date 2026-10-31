@@ -22,6 +22,7 @@ set -euo pipefail
 
 KIOSK_URL="${KIOSK_URL:-http://192.168.1.21/?kiosk}"
 KIOSK_USER="${KIOSK_USER:-$(id -un)}"
+KIOSK_VOLUME="${KIOSK_VOLUME:-60%}"
 
 if [[ $EUID -eq 0 ]]; then
   echo "Run this as your normal user, not root. It will sudo when needed." >&2
@@ -30,6 +31,7 @@ fi
 
 echo "==> Kiosk user : $KIOSK_USER"
 echo "==> Kiosk URL  : $KIOSK_URL"
+echo "==> Volume     : $KIOSK_VOLUME"
 echo
 
 # ---------- 1. Packages ----------
@@ -41,7 +43,8 @@ sudo apt-get install -y --no-install-recommends \
   x11-xserver-utils \
   openssh-server \
   curl \
-  systemd-timesyncd
+  systemd-timesyncd \
+  pulseaudio-utils
 
 # ---------- 1b. Clock synchronisation ----------
 
@@ -120,6 +123,27 @@ Terminal=false
 X-GNOME-Autostart-enabled=true
 X-GNOME-Autostart-Delay=5
 EOF
+
+# ---------- 4b. Output volume ----------
+
+# PipeWire resets to its own default on every restart, so the volume has to be
+# re-applied on login. The sleep lets the audio server finish starting first.
+# `pactl` comes from pulseaudio-utils, which is installed above.
+echo "==> Writing volume autostart entry"
+cat > "$HOME/.config/autostart/kiosk-volume.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Kiosk Volume
+Comment=Set the default output volume on login
+Exec=sh -c "sleep 3; pactl set-sink-volume @DEFAULT_SINK@ ${KIOSK_VOLUME}"
+Terminal=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Apply it now too, so the change takes effect without waiting for a reboot.
+if command -v pactl >/dev/null 2>&1; then
+  pactl set-sink-volume @DEFAULT_SINK@ "$KIOSK_VOLUME" 2>/dev/null || true
+fi
 
 # ---------- 5. Kill screen blanking inside the session ----------
 

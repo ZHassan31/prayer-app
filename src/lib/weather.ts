@@ -68,45 +68,58 @@ export interface Weather {
  * WMO weather interpretation codes
  * ------------------------------------------------------------------ */
 
+/**
+ * Colour family for a condition. Mapped to CSS classes rather than raw
+ * colours so each theme can pick its own palette.
+ */
+export type WeatherTone =
+  | 'clear'
+  | 'cloud'
+  | 'fog'
+  | 'rain'
+  | 'snow'
+  | 'storm';
+
 export interface WeatherLookup {
   label: string;
   /** A glyph that exists in DejaVu Sans, the default Debian font. */
   glyph: string;
+  tone: WeatherTone;
 }
 
 const WMO: Record<number, WeatherLookup> = {
-  0: { label: 'Clear sky', glyph: '☀' },
-  1: { label: 'Mainly clear', glyph: '☀' },
-  2: { label: 'Partly cloudy', glyph: '⛅' },
-  3: { label: 'Overcast', glyph: '☁' },
-  45: { label: 'Fog', glyph: '≡' },
-  48: { label: 'Rime fog', glyph: '≡' },
-  51: { label: 'Light drizzle', glyph: '☂' },
-  53: { label: 'Drizzle', glyph: '☂' },
-  55: { label: 'Dense drizzle', glyph: '☂' },
-  56: { label: 'Freezing drizzle', glyph: '☂' },
-  57: { label: 'Freezing drizzle', glyph: '☂' },
-  61: { label: 'Light rain', glyph: '☂' },
-  63: { label: 'Rain', glyph: '☂' },
-  65: { label: 'Heavy rain', glyph: '☂' },
-  66: { label: 'Freezing rain', glyph: '☂' },
-  67: { label: 'Freezing rain', glyph: '☂' },
-  71: { label: 'Light snow', glyph: '❄' },
-  73: { label: 'Snow', glyph: '❄' },
-  75: { label: 'Heavy snow', glyph: '❄' },
-  77: { label: 'Snow grains', glyph: '❄' },
-  80: { label: 'Light showers', glyph: '☂' },
-  81: { label: 'Showers', glyph: '☂' },
-  82: { label: 'Heavy showers', glyph: '☂' },
-  85: { label: 'Snow showers', glyph: '❄' },
-  86: { label: 'Heavy snow showers', glyph: '❄' },
-  95: { label: 'Thunderstorm', glyph: '⚡' },
-  96: { label: 'Thunderstorm, hail', glyph: '⚡' },
-  99: { label: 'Thunderstorm, hail', glyph: '⚡' },
+  0: { label: 'Clear sky', glyph: '☀', tone: 'clear' },
+  1: { label: 'Mainly clear', glyph: '☀', tone: 'clear' },
+  2: { label: 'Partly cloudy', glyph: '⛅', tone: 'cloud' },
+  3: { label: 'Overcast', glyph: '☁', tone: 'cloud' },
+  45: { label: 'Fog', glyph: '≡', tone: 'fog' },
+  48: { label: 'Rime fog', glyph: '≡', tone: 'fog' },
+  51: { label: 'Light drizzle', glyph: '☂', tone: 'rain' },
+  53: { label: 'Drizzle', glyph: '☂', tone: 'rain' },
+  55: { label: 'Dense drizzle', glyph: '☂', tone: 'rain' },
+  56: { label: 'Freezing drizzle', glyph: '☂', tone: 'rain' },
+  57: { label: 'Freezing drizzle', glyph: '☂', tone: 'rain' },
+  61: { label: 'Light rain', glyph: '☂', tone: 'rain' },
+  63: { label: 'Rain', glyph: '☂', tone: 'rain' },
+  65: { label: 'Heavy rain', glyph: '☂', tone: 'rain' },
+  66: { label: 'Freezing rain', glyph: '☂', tone: 'rain' },
+  67: { label: 'Freezing rain', glyph: '☂', tone: 'rain' },
+  71: { label: 'Light snow', glyph: '❄', tone: 'snow' },
+  73: { label: 'Snow', glyph: '❄', tone: 'snow' },
+  75: { label: 'Heavy snow', glyph: '❄', tone: 'snow' },
+  77: { label: 'Snow grains', glyph: '❄', tone: 'snow' },
+  80: { label: 'Light showers', glyph: '☂', tone: 'rain' },
+  81: { label: 'Showers', glyph: '☂', tone: 'rain' },
+  82: { label: 'Heavy showers', glyph: '☂', tone: 'rain' },
+  85: { label: 'Snow showers', glyph: '❄', tone: 'snow' },
+  86: { label: 'Heavy snow showers', glyph: '❄', tone: 'snow' },
+  95: { label: 'Thunderstorm', glyph: '⚡', tone: 'storm' },
+  96: { label: 'Thunderstorm, hail', glyph: '⚡', tone: 'storm' },
+  99: { label: 'Thunderstorm, hail', glyph: '⚡', tone: 'storm' },
 };
 
 export function describeWeather(code: number): WeatherLookup {
-  return WMO[code] ?? { label: 'Unknown', glyph: '·' };
+  return WMO[code] ?? { label: 'Unknown', glyph: '·', tone: 'cloud' };
 }
 
 /* ------------------------------------------------------------------ *

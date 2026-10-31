@@ -637,11 +637,75 @@ select {
   border-bottom: 1px dotted currentColor;
 }
 
-/* Mint theme: the panel sits on the bright canvas. */
-[data-theme='mint'] .weather-glyph,
-[data-theme='mint'] .weather-hour-glyph,
-[data-theme='mint'] .weather-day-glyph {
+/* ---- Condition colours ----
+ * Each weather type gets its own hue so the icon reads at a glance from
+ * across the room, rather than every condition sharing one accent colour.
+ * Tones are defined once here and re-tuned per theme below.
+ */
+.weather-glyph,
+.weather-hour-glyph,
+.weather-day-glyph {
+  transition: color 0.3s ease;
+}
+
+.tone-clear {
+  color: #fbbf24;
+}
+
+.tone-cloud {
+  color: #cbd5e1;
+}
+
+.tone-fog {
+  color: #a8b3c4;
+}
+
+.tone-rain {
+  color: #60a5fa;
+}
+
+.tone-snow {
+  color: #bae6fd;
+}
+
+.tone-storm {
+  color: #c084fc;
+}
+
+/* Mint theme: the panel sits on the bright canvas, so the tones are
+ * deepened to keep contrast against the teal. */
+[data-theme='mint'] .tone-clear {
+  color: #fde047;
+}
+
+[data-theme='mint'] .tone-cloud {
   color: #ffffff;
+}
+
+[data-theme='mint'] .tone-fog {
+  color: #e2e8f0;
+}
+
+[data-theme='mint'] .tone-rain {
+  color: #bfdbfe;
+}
+
+[data-theme='mint'] .tone-snow {
+  color: #ffffff;
+}
+
+[data-theme='mint'] .tone-storm {
+  color: #e9d5ff;
+}
+
+/* Sand theme: warm canvas, so the sun needs to stay distinct from the
+ * amber accent behind it. */
+[data-theme='sand'] .tone-clear {
+  color: #fbbf24;
+}
+
+[data-theme='sand'] .tone-cloud {
+  color: #e7e5e4;
 }
 
 [data-theme='mint'] .weather-day-pop {

@@ -70,7 +70,10 @@ export function WeatherPanel({
     <section className="weather" aria-label="Weather">
       {/* ---- headline ---- */}
       <div className="weather-head">
-        <span className="weather-glyph" aria-hidden="true">
+        <span
+          className={`weather-glyph tone-${condition.tone}`}
+          aria-hidden="true"
+        >
           {condition.glyph}
         </span>
         <div className="weather-head-text">
@@ -94,7 +97,10 @@ export function WeatherPanel({
                   <span className="weather-hour-time">
                     {index === 0 ? 'Now' : hourLabel(hour.time, timezone, use24Hour)}
                   </span>
-                  <span className="weather-hour-glyph" aria-hidden="true">
+                  <span
+                    className={`weather-hour-glyph tone-${hourCondition.tone}`}
+                    aria-hidden="true"
+                  >
                     {hourCondition.glyph}
                   </span>
                   <span className="weather-hour-temp">{temp(hour.temperature)}</span>
@@ -115,7 +121,10 @@ export function WeatherPanel({
               <span className="weather-day-name">
                 {weekdayLabel(day.date, timezone)}
               </span>
-              <span className="weather-day-glyph" aria-hidden="true">
+              <span
+                className={`weather-day-glyph tone-${dayCondition.tone}`}
+                aria-hidden="true"
+              >
                 {dayCondition.glyph}
               </span>
               <span className="weather-day-pop">

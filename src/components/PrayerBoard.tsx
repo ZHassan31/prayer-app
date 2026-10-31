@@ -2,10 +2,12 @@ import { formatClock, formatCountdown } from '../lib/format';
 import { anchorUtcNoon, daysUntilRamadan, ramadanLabel } from '../lib/hijri';
 import { civilDateInTimeZone, type PrayerEntry, type Selection } from '../lib/prayer';
 import type { Settings } from '../lib/settings';
+import type { Weather } from '../lib/weather';
 import { Clock } from './Clock';
 import { DateLine } from './DateLine';
 import { PrayerList } from './PrayerList';
 import { VerseRotator } from './VerseRotator';
+import { WeatherPanel } from './WeatherPanel';
 
 interface Props {
   settings: Settings;
@@ -13,6 +15,8 @@ interface Props {
   selection: Selection;
   progress: number;
   now: Date;
+  weather: Weather | null;
+  weatherLoading: boolean;
   onOpenSettings: () => void;
   showSettingsButton: boolean;
 }
@@ -23,6 +27,8 @@ export function PrayerBoard({
   selection,
   progress,
   now,
+  weather,
+  weatherLoading,
   onOpenSettings,
   showSettingsButton,
 }: Props) {
@@ -139,6 +145,12 @@ export function PrayerBoard({
             selection={selection}
             timeZone={settings.timezone}
             use24Hour={settings.use24Hour}
+            now={now}
+          />
+          <WeatherPanel
+            weather={weather}
+            loading={weatherLoading}
+            timezone={settings.timezone}
             now={now}
           />
         </aside>

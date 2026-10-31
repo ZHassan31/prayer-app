@@ -310,8 +310,8 @@ Create it on the container:
 cd /opt/prayer-app
 cat > config.json <<'EOF'
 {
-  "latitude": 51.4613,
-  "longitude": -0.1866,
+  "latitude": 0.0,
+  "longitude": 0.0,
   "timezone": "Europe/London",
   "method": "MoonsightingCommittee",
   "madhab": "shafi",
@@ -323,6 +323,9 @@ cat > config.json <<'EOF'
 EOF
 docker compose up -d
 ```
+
+> Replace `latitude` and `longitude` with your own coordinates. They are
+> deliberately left at `0.0` here so this file never carries a real location.
 
 `docker-compose.yml` already mounts it read-only:
 

@@ -5,6 +5,7 @@ import { useAdhan } from './hooks/useAdhan';
 import { useConfigWatcher } from './hooks/useConfigWatcher';
 import { useNow } from './hooks/useNow';
 import { useWakeLock } from './hooks/useWakeLock';
+import { useWeather } from './hooks/useWeather';
 import { findDueAdhan, markAdhanPlayed } from './lib/adhan';
 import { loadConfig, type AppConfig } from './lib/config';
 import {
@@ -52,6 +53,16 @@ export default function App() {
   const now = useNow(1000);
   useWakeLock(true);
   useAutoReload(60_000);
+
+  /*
+   * Weather. `current` is 15-minute model output, so it is polled every 15
+   * minutes; the daily forecast only changes on a new model run, so hourly.
+   */
+  const { weather, loading: weatherLoading } = useWeather(
+    settings.latitude,
+    settings.longitude,
+    settings.timezone,
+  );
 
   /*
    * Applies a config object to state. Server config is authoritative, so every
@@ -200,6 +211,8 @@ export default function App() {
         selection={selection}
         progress={progress}
         now={now}
+        weather={weather}
+        weatherLoading={weatherLoading}
         onOpenSettings={() => setSettingsOpen(true)}
         showSettingsButton={!KIOSK}
       />

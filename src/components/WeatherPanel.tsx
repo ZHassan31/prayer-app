@@ -89,6 +89,10 @@ export function WeatherPanel({
             readings people actually look for beyond temperature. */}
         <dl className="weather-details">
           <div className="weather-detail">
+            <dt>Feels</dt>
+            <dd>{temp(current.apparentTemperature)}</dd>
+          </div>
+          <div className="weather-detail">
             <dt>Humidity</dt>
             <dd>{Math.round(current.humidity)}%</dd>
           </div>

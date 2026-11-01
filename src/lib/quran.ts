@@ -18,7 +18,7 @@
 const API = 'https://ummahapi.com';
 
 /** Translation used for the English line. */
-export const TRANSLATION = 'pickthall' as const;
+export const TRANSLATION = 'sahih_international' as const;
 
 /**
  * Curated verse references as [surah, ayah] pairs.
@@ -34,8 +34,11 @@ export const TRANSLATION = 'pickthall' as const;
  *   2. Deduplicated — the old list repeated a few references.
  *
  * Verified against the live API at 1920x1080: all of these render in two
- * lines or fewer. If the footer height or font size changes, re-check with
- * the probe described in the README.
+ * lines or fewer, for BOTH the Arabic and the `sahih_international`
+ * translation. Sahih International runs longer than Pickthall and adds
+ * bracketed clarifications, so switching translation changes which verses
+ * fit — re-run the check if you change TRANSLATION, the footer height, or
+ * the font size.
  */
 export const VERSE_REFS: ReadonlyArray<readonly [number, number]> = [
   [94, 5],
@@ -69,7 +72,6 @@ export const VERSE_REFS: ReadonlyArray<readonly [number, number]> = [
   [53, 39],
   [2, 181],
   [2, 43],
-  [3, 159],
   [4, 29],
   [3, 57],
   [51, 56],
@@ -89,8 +91,6 @@ export const VERSE_REFS: ReadonlyArray<readonly [number, number]> = [
   [14, 42],
   [20, 14],
   [20, 132],
-  [18, 28],
-  [18, 29],
   [18, 30],
   [33, 62],
   [3, 146],
@@ -102,7 +102,6 @@ export const VERSE_REFS: ReadonlyArray<readonly [number, number]> = [
   [4, 148],
   [4, 149],
   [2, 186],
-  [65, 2],
   [65, 4],
   [64, 16],
   [64, 17],
@@ -181,8 +180,10 @@ export async function fetchVerse(
     const translations = verse.translations as
       | Record<string, unknown>
       | undefined;
+    // Fall back to Pickthall if the preferred translation is missing for
+    // this ayah, rather than dropping the verse entirely.
     const english =
-      str(translations?.[TRANSLATION]) ?? str(translations?.sahih_international);
+      str(translations?.[TRANSLATION]) ?? str(translations?.pickthall);
     if (!english) return null;
 
     const name = str(surahInfo?.name_english) ?? `Surah ${surah}`;

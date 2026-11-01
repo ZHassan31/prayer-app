@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { VERSES } from '../lib/verses';
+import { useVerse } from '../hooks/useVerse';
+import { VERSE_REFS } from '../lib/quran';
 
 /** How long each phase stays fully visible. */
 const ARABIC_MS = 9_000;
@@ -15,11 +16,16 @@ type Phase = 'arabic' | 'english';
  *
  * A single effect drives the whole cycle. Each run schedules exactly one
  * transition, so there is never more than one pending timer.
+ *
+ * The text comes from UmmahAPI rather than a bundled list, so the Arabic is
+ * verified against a published source instead of hand-typed.
  */
 export function VerseRotator() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('arabic');
   const [visible, setVisible] = useState(true);
+
+  const { verse } = useVerse(index);
 
   useEffect(() => {
     const holdMs = phase === 'arabic' ? ARABIC_MS : ENGLISH_MS;
@@ -33,7 +39,7 @@ export function VerseRotator() {
         setPhase('english');
       } else {
         setPhase('arabic');
-        setIndex((current) => (current + 1) % VERSES.length);
+        setIndex((current) => (current + 1) % VERSE_REFS.length);
       }
       setVisible(true);
     }, holdMs + FADE_MS);
@@ -44,7 +50,7 @@ export function VerseRotator() {
     };
   }, [phase, index]);
 
-  const verse = VERSES[index];
+  // Nothing to show until the first verse arrives.
   if (!verse) return null;
 
   return (

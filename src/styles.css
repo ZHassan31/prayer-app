@@ -1221,8 +1221,15 @@ select {
 .verse-arabic {
   margin: 0;
   font-family: var(--font-arabic);
-  font-size: clamp(1.1rem, 2.5vw, 3rem);
-  line-height: 1.7;
+  /*
+   * The footer is a fixed-height box, and these are now full ayahs fetched
+   * from UmmahAPI rather than the short hand-picked passages the app used
+   * to bundle. A 183-character ayah at the old 3rem needed 163px for two
+   * lines, which overflowed the 140px footer by 24px. Sizing to 2rem with
+   * a 1.5 line-height keeps two full lines inside the box.
+   */
+  font-size: clamp(1rem, 1.7vw, 2rem);
+  line-height: 1.5;
   color: var(--text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1232,9 +1239,11 @@ select {
 
 .verse-english {
   margin: 0;
-  font-size: clamp(0.85rem, 1.5vw, 1.75rem);
+  /* Sized alongside the Arabic above so the longest translation also fits
+     in two lines. */
+  font-size: clamp(0.8rem, 1.25vw, 1.5rem);
   font-style: italic;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--text-dim);
   display: -webkit-box;
   -webkit-line-clamp: 2;

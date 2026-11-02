@@ -79,7 +79,9 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'mint',
   // On by default: the adhan plays for every prayer except Fajr.
   adhanEnabled: true,
-  adhanVolume: 0.8,
+  // 1.0 is the ceiling: HTMLAudioElement.volume is clamped to 0-1, so this
+  // is as loud as the app can go. Anything beyond needs the system mixer.
+  adhanVolume: 1,
   adhanPrayers: [...DEFAULT_ADHAN_PRAYERS],
   configured: false,
 };

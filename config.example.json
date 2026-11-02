@@ -9,7 +9,7 @@
   "use24Hour": true,
   "hijriOffset": 0,
   "adhanEnabled": true,
-  "adhanVolume": 0.8,
+  "adhanVolume": 1,
   "adhanPrayers": ["dhuhr", "asr", "maghrib", "isha"],
   "adjustments": {
     "fajr": 0,

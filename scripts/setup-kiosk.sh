@@ -22,7 +22,10 @@ set -euo pipefail
 
 KIOSK_URL="${KIOSK_URL:-http://192.168.1.21/?kiosk}"
 KIOSK_USER="${KIOSK_USER:-$(id -un)}"
-KIOSK_VOLUME="${KIOSK_VOLUME:-60%}"
+# 75% is the practical ceiling on the Latitude's internal speakers; higher
+# starts to clip. The app's own adhanVolume is already at its 1.0 maximum, so
+# this is the only remaining headroom.
+KIOSK_VOLUME="${KIOSK_VOLUME:-75%}"
 
 if [[ $EUID -eq 0 ]]; then
   echo "Run this as your normal user, not root. It will sudo when needed." >&2

@@ -34,6 +34,19 @@ import { useAutoReload } from './lib/version';
 const KIOSK = new URLSearchParams(window.location.search).has('kiosk');
 
 /**
+ * Traffic-light lead times before the next prayer.
+ *
+ * Amber at 30 minutes: long enough to notice from across a room and finish
+ * what you are doing. Red at 15 minutes: the point where you should be
+ * getting ready rather than starting something new.
+ */
+const AMBER_LEAD_MS = 30 * 60 * 1000;
+const RED_LEAD_MS = 15 * 60 * 1000;
+
+/** Which alert stage the countdown is in, or null for the normal canvas. */
+type AlertStage = 'amber' | 'red';
+
+/**
  * Bundled adhan audio. Served from the public dir, so it is cached and needs
  * no network at prayer time. Replace public/Adhan-Makkah.mp3 to change it.
  */
@@ -121,6 +134,25 @@ export default function App() {
   );
 
   /*
+   * Traffic-light stage for the canvas.
+   *
+   * Derived from the same `selection` the countdown uses, so the colour can
+   * never disagree with the timer on screen. `now` ticks every second, so a
+   * stage change lands within a second of its threshold.
+   *
+   * Red is checked first: it is the narrower window, so it wins when both
+   * thresholds are satisfied.
+   */
+  const alertStage = useMemo<AlertStage | null>(() => {
+    if (!selection.next) return null;
+    const remaining = selection.next.time.getTime() - now.getTime();
+    if (remaining <= 0) return null;
+    if (remaining <= RED_LEAD_MS) return 'red';
+    if (remaining <= AMBER_LEAD_MS) return 'amber';
+    return null;
+  }, [selection, now]);
+
+  /*
    * Play the adhan when a prayer time arrives.
    *
    * Runs on every tick, so the trigger window is one second wide at the
@@ -202,6 +234,7 @@ export default function App() {
     <div
       className={`app${cursorIdle ? ' cursor-idle' : ''}`}
       data-theme={settings.theme}
+      data-alert={alertStage ?? undefined}
     >
       <div className="ambient" aria-hidden="true" />
 

@@ -95,7 +95,15 @@ export function PrayerBoard({
           {next ? (
             <>
               <h1 className="hero-name">
-                {next.label}
+                {/*
+                  The gradient lives on this inner span, not on the h1.
+                  `background-clip: text` paints the element's background
+                  behind every glyph it contains, including descendants — so
+                  when the Arabic was a direct child of the gradient element,
+                  the gradient showed through its semi-transparent fill and
+                  the letters looked mottled white/grey.
+                */}
+                <span className="hero-name-text">{next.label}</span>
                 <span className="hero-arabic" lang="ar" dir="rtl">
                   {next.arabic}
                 </span>

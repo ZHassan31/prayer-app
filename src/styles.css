@@ -20,6 +20,26 @@
   --panel-bg: #101827;
   --panel-bg-2: #0a1120;
   --option-bg: #0d1424;
+  /*
+   * Traffic-light alert canvases, used as the next prayer approaches.
+   *
+   * Amber at 30 minutes, red at 15. Amber is the universal "approaching"
+   * signal and a warm shift reads as "something is about to happen" rather
+   * than "the app broke". Red then carries the urgency of the final quarter
+   * hour.
+   *
+   * Both are the 800 shade rather than 700 because the dimmed text has to
+   * stay legible: at 700 the secondary labels drop below 4.5:1, while at 800
+   * they clear AA once --text-dim / --text-faint are raised in the alert
+   * state below.
+   *
+   * Defined once here so every theme inherits them — the alert is a state,
+   * not a theme, so it should look the same whichever palette is selected.
+   */
+  --alert-amber: #92400e;
+  --alert-amber-2: #7c2d12;
+  --alert-red: #991b1b;
+  --alert-red-2: #7f1d1d;
   --radius: 20px;
   --font: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -53,7 +73,8 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
-[data-theme='mint'] .hero-name {
+/* The gradient now lives on .hero-name-text, so override it there. */
+[data-theme='mint'] .hero-name-text {
   background: none;
   -webkit-text-fill-color: #ffffff;
   color: #ffffff;
@@ -195,6 +216,74 @@ select {
     radial-gradient(120% 90% at 15% 0%, var(--bg-2) 0%, transparent 60%),
     radial-gradient(100% 80% at 100% 100%, var(--bg-2) 0%, transparent 55%),
     var(--bg);
+  /*
+   * The alert state swaps --bg / --bg-2, and those feed the gradients above.
+   * Gradients are not interpolatable, so the fade is done by cross-fading a
+   * second layer instead: ::before holds the alert background and animates
+   * its opacity. That gives a smooth transition where a background swap
+   * would snap.
+   */
+}
+
+/*
+ * Alert layer. Sits behind the content but above the base background, and
+ * cross-fades between the traffic-light stages.
+ *
+ * Two layers are used rather than one so amber -> red is a cross-fade: the
+ * amber layer fades out while the red fades in, instead of the background
+ * snapping through an intermediate colour.
+ */
+.app::before,
+.app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+/* Amber: 30 minutes out. */
+.app::before {
+  background:
+    radial-gradient(120% 90% at 15% 0%, var(--alert-amber-2) 0%, transparent 60%),
+    radial-gradient(100% 80% at 100% 100%, var(--alert-amber-2) 0%, transparent 55%),
+    var(--alert-amber);
+}
+
+/* Red: 15 minutes out. Sits above the amber layer. */
+.app::after {
+  background:
+    radial-gradient(120% 90% at 15% 0%, var(--alert-red-2) 0%, transparent 60%),
+    radial-gradient(100% 80% at 100% 100%, var(--alert-red-2) 0%, transparent 55%),
+    var(--alert-red);
+}
+
+.app[data-alert='amber']::before {
+  opacity: 1;
+}
+
+.app[data-alert='red']::before,
+.app[data-alert='red']::after {
+  opacity: 1;
+}
+
+/*
+ * Both alert canvases are lighter than the dark themes, so the dimmed text
+ * needs more opacity to stay readable. At 0.82 / 0.72 the secondary and
+ * tertiary labels clear 4.5:1 on both amber 800 and red 800 (AA); at the
+ * defaults of 0.62 / 0.34 they would fall to 3.0:1 and 1.7:1.
+ */
+.app[data-alert] {
+  --text-dim: rgba(255, 255, 255, 0.82);
+  --text-faint: rgba(255, 255, 255, 0.72);
+}
+
+/* Keep the content above the alert layers. */
+.app > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app.cursor-idle,
@@ -386,6 +475,18 @@ select {
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.03em;
+}
+
+/*
+ * The gradient is applied here rather than on .hero-name.
+ *
+ * `background-clip: text` paints the element's background behind every glyph
+ * it contains, descendants included. With the Arabic inside the gradient
+ * element, the gradient showed through its semi-transparent fill and the
+ * letters looked mottled white/grey. Keeping the gradient on a span that
+ * holds only the Latin name avoids that entirely.
+ */
+.hero-name-text {
   background: linear-gradient(135deg, var(--text) 25%, var(--accent) 130%);
   -webkit-background-clip: text;
   background-clip: text;

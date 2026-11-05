@@ -1457,3 +1457,203 @@ select {
     padding-bottom: 0.25rem;
   }
 }
+
+/* ---------- Yearly prayer-time statistics ---------- */
+
+.yearly-panel {
+  width: min(920px, 100%);
+}
+
+.yearly-body {
+  gap: 1.75rem;
+}
+
+.yearly-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.yearly-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.yearly-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+/* Headline figures: average, shortest, longest, swing. */
+.yearly-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.yearly-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.yearly-highlight-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.yearly-highlight-value {
+  font-size: 1.35rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.yearly-highlight-note {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+/* Interval table. */
+.yearly-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.yearly-table th,
+.yearly-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.yearly-table thead th {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.yearly-table tbody th {
+  text-align: left;
+  font-weight: 550;
+  color: var(--text);
+}
+
+.yearly-table tbody tr:last-child th,
+.yearly-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.yearly-strong {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.yearly-swing {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.yearly-month {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--text-faint);
+}
+
+/* Monthly chart: paired bars per month. */
+.yearly-chart {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.35rem;
+  height: 190px;
+  align-items: end;
+  padding: 0.5rem 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.yearly-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.yearly-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+
+.yearly-bar {
+  width: 42%;
+  min-height: 3px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.yearly-bar-daylight {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+
+.yearly-bar-night {
+  /* The night bar sits on the dark panel, so a plain surface fill is almost
+     invisible. A muted blue reads as "night" and stays distinct from the
+     green daylight bar without competing with it. */
+  background: rgba(96, 165, 250, 0.55);
+  border: 1px solid rgba(96, 165, 250, 0.75);
+}
+
+.yearly-col-label {
+  font-size: 0.64rem;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+}
+
+.yearly-legend {
+  display: flex;
+  gap: 1.1rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.yearly-key {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.yearly-key::before {
+  content: '';
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+}
+
+.yearly-key-daylight::before {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+
+.yearly-key-night::before {
+  background: rgba(96, 165, 250, 0.55);
+  border: 1px solid rgba(96, 165, 250, 0.75);
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PrayerBoard } from './components/PrayerBoard';
 import { SettingsPanel } from './components/SettingsPanel';
+import { YearlyPanel } from './components/YearlyPanel';
 import { useAdhan } from './hooks/useAdhan';
 import { useConfigWatcher } from './hooks/useConfigWatcher';
 import { useNow } from './hooks/useNow';
@@ -58,6 +59,7 @@ export default function App() {
   const [config, setConfig] = useState<AppConfig>({});
   const [configReady, setConfigReady] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [yearlyOpen, setYearlyOpen] = useState(false);
   const [cursorIdle, setCursorIdle] = useState(false);
 
   const { play: playAdhan, stop: stopAdhan, status: adhanStatus } = useAdhan();
@@ -247,8 +249,17 @@ export default function App() {
         weather={weather}
         weatherLoading={weatherLoading}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenYearly={() => setYearlyOpen(true)}
         showSettingsButton={!KIOSK}
       />
+
+      {yearlyOpen && (
+        <YearlyPanel
+          settings={settings}
+          year={now.getFullYear()}
+          onClose={() => setYearlyOpen(false)}
+        />
+      )}
 
       {(settingsOpen || firstRun) && (
         <SettingsPanel

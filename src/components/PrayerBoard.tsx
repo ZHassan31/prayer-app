@@ -18,6 +18,7 @@ interface Props {
   weather: Weather | null;
   weatherLoading: boolean;
   onOpenSettings: () => void;
+  onOpenYearly: () => void;
   showSettingsButton: boolean;
 }
 
@@ -30,6 +31,7 @@ export function PrayerBoard({
   weather,
   weatherLoading,
   onOpenSettings,
+  onOpenYearly,
   showSettingsButton,
 }: Props) {
   const { next, previous } = selection;
@@ -73,15 +75,26 @@ export function PrayerBoard({
             use24Hour={settings.use24Hour}
           />
           {showSettingsButton && (
-            <button
-              type="button"
-              className="icon-button"
-              onClick={onOpenSettings}
-              title="Settings (S)"
-              aria-label="Open settings"
-            >
-              ⚙
-            </button>
+            <>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={onOpenYearly}
+                title="Yearly prayer times (Y)"
+                aria-label="Open yearly prayer times"
+              >
+                ◷
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={onOpenSettings}
+                title="Settings (S)"
+                aria-label="Open settings"
+              >
+                ⚙
+              </button>
+            </>
           )}
         </div>
       </header>

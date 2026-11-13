@@ -19,15 +19,21 @@ type Phase = 'arabic' | 'english';
  *
  * The text comes from UmmahAPI rather than a bundled list, so the Arabic is
  * verified against a published source instead of hand-typed.
+ *
+ * `paused` freezes the cycle during the night quiet window. The current verse
+ * stays on screen so waking up shows something immediately, but no timers run
+ * and no further verses are fetched.
  */
-export function VerseRotator() {
+export function VerseRotator({ paused = false }: { paused?: boolean }) {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('arabic');
   const [visible, setVisible] = useState(true);
 
-  const { verse } = useVerse(index);
+  const { verse } = useVerse(index, paused);
 
   useEffect(() => {
+    if (paused) return;
+
     const holdMs = phase === 'arabic' ? ARABIC_MS : ENGLISH_MS;
 
     // 1. Hold the current phase, then start fading out.
@@ -48,7 +54,7 @@ export function VerseRotator() {
       window.clearTimeout(fadeOut);
       window.clearTimeout(swap);
     };
-  }, [phase, index]);
+  }, [phase, index, paused]);
 
   // Nothing to show until the first verse arrives.
   if (!verse) return null;

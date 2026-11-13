@@ -20,6 +20,8 @@ interface Props {
   onOpenSettings: () => void;
   onOpenYearly: () => void;
   showSettingsButton: boolean;
+  /** True during the night quiet window; stops the verse cycle. */
+  sleeping?: boolean;
 }
 
 export function PrayerBoard({
@@ -33,6 +35,7 @@ export function PrayerBoard({
   onOpenSettings,
   onOpenYearly,
   showSettingsButton,
+  sleeping = false,
 }: Props) {
   const { next, previous } = selection;
   const remaining = next ? next.time.getTime() - now.getTime() : 0;
@@ -179,7 +182,7 @@ export function PrayerBoard({
       </main>
 
       <footer className="footer">
-        <VerseRotator />
+        <VerseRotator paused={sleeping} />
       </footer>
     </div>
   );

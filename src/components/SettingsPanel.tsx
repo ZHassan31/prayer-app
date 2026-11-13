@@ -352,6 +352,53 @@ export function SettingsPanel({
             </div>
 
           </section>
+
+          <section className="section">
+            <h3>Night quiet window</h3>
+            <p className="hint">
+              Blanks the screen between Isha and Fajr. The machine stays awake,
+              so the Fajr adhan still plays.
+            </p>
+
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={draft.sleepEnabled}
+                onChange={(e) => update('sleepEnabled', e.target.checked)}
+              />
+              <span>Blank the screen at night</span>
+            </label>
+
+            <label className="field">
+              <span>Quiet {draft.sleepAfterIsha} min after Isha</span>
+              <input
+                type="range"
+                min={0}
+                max={120}
+                step={5}
+                value={draft.sleepAfterIsha}
+                disabled={!draft.sleepEnabled}
+                onChange={(e) =>
+                  update('sleepAfterIsha', Number(e.target.value))
+                }
+              />
+            </label>
+
+            <label className="field">
+              <span>Wake {draft.sleepBeforeFajr} min before Fajr</span>
+              <input
+                type="range"
+                min={0}
+                max={60}
+                step={5}
+                value={draft.sleepBeforeFajr}
+                disabled={!draft.sleepEnabled}
+                onChange={(e) =>
+                  update('sleepBeforeFajr', Number(e.target.value))
+                }
+              />
+            </label>
+          </section>
         </div>
 
         <footer className="panel-footer">

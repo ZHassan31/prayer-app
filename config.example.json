@@ -11,6 +11,9 @@
   "adhanEnabled": true,
   "adhanVolume": 1,
   "adhanPrayers": ["dhuhr", "asr", "maghrib", "isha"],
+  "sleepEnabled": true,
+  "sleepAfterIsha": 30,
+  "sleepBeforeFajr": 10,
   "adjustments": {
     "fajr": 0,
     "sunrise": 0,

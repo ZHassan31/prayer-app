@@ -15,6 +15,11 @@ import { fetchWeather, type Weather } from '../lib/weather';
  * A failed request never clears the previous reading — a network blip should
  * not blank the weather panel. The caller can inspect `stale` to decide how
  * to present an old value.
+ *
+ * `paused` stops polling entirely. During the night quiet window nobody is
+ * looking at the screen, so fetching a forecast that will be stale by morning
+ * is pure waste. The last reading is kept, so waking up shows something
+ * immediately rather than an empty panel.
  */
 export function useWeather(
   latitude: number,
@@ -22,6 +27,7 @@ export function useWeather(
   timezone: string,
   currentIntervalMs = 15 * 60 * 1000,
   dailyIntervalMs = 60 * 60 * 1000,
+  paused = false,
 ): { weather: Weather | null; loading: boolean } {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +37,8 @@ export function useWeather(
   coords.current = { latitude, longitude, timezone };
 
   useEffect(() => {
+    if (paused) return;
+
     let cancelled = false;
     let controller: AbortController | null = null;
 
@@ -59,7 +67,7 @@ export function useWeather(
       window.clearInterval(currentTimer);
       window.clearInterval(dailyTimer);
     };
-  }, [currentIntervalMs, dailyIntervalMs]);
+  }, [currentIntervalMs, dailyIntervalMs, paused]);
 
   return { weather, loading };
 }

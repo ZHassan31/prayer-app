@@ -177,6 +177,34 @@ if command -v xfconf-query >/dev/null 2>&1; then
   xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/lid-action-on-battery -n -t int -s 0 2>/dev/null || true
 fi
 
+# ---------- 5b. Night screen blanking ----------
+
+# The browser cannot switch off a display, so a small Python daemon does it:
+# DPMS off after Isha, back on before Fajr. The machine stays awake, so the
+# Fajr adhan still plays.
+#
+# It computes its own times rather than reading them from the app, so the
+# screen still blanks correctly if the browser has crashed or is reloading.
+echo "==> Installing night blanking daemon"
+sudo apt-get install -y python3-pip >/dev/null 2>&1 || true
+python3 -m pip install --user --quiet adhan 2>/dev/null || \
+  echo "    (could not install adhan — the daemon will report it at startup)"
+
+install -m 755 "$(dirname "$0")/kiosk-sleep.py" "$HOME/kiosk-sleep.py" 2>/dev/null || true
+
+cat > "$HOME/.config/autostart/kiosk-sleep.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Kiosk Night Blanking
+Comment=Blank the display between Isha and Fajr
+Exec=python3 $HOME/kiosk-sleep.py --lat ${KIOSK_LAT:-51.4613} --lon ${KIOSK_LON:--0.1866} --tz ${KIOSK_TZ:-Europe/London} --method ${KIOSK_METHOD:-MoonsightingCommittee} --madhab ${KIOSK_MADHAB:-shafi}
+Terminal=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+echo "    lat/lon default to the values in config.json — override with"
+echo "    KIOSK_LAT / KIOSK_LON / KIOSK_TZ if they differ."
+
 # ---------- 6. WiFi power saving ----------
 
 # Power saving makes the WiFi radio nap between packets, which shows up as

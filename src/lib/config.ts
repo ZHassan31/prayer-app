@@ -26,6 +26,9 @@ export interface AppConfig {
   adhanEnabled?: boolean;
   adhanVolume?: number;
   adhanPrayers?: string[];
+  sleepEnabled?: boolean;
+  sleepAfterIsha?: number;
+  sleepBeforeFajr?: number;
 }
 
 let cached: AppConfig = {};
@@ -67,6 +70,15 @@ function sanitize(raw: unknown): AppConfig {
     out.adhanPrayers = input.adhanPrayers.filter(
       (key): key is string => typeof key === 'string',
     );
+  }
+  if (typeof input.sleepEnabled === 'boolean') {
+    out.sleepEnabled = input.sleepEnabled;
+  }
+  if (isFiniteNumber(input.sleepAfterIsha)) {
+    out.sleepAfterIsha = Math.min(180, Math.max(0, Math.round(input.sleepAfterIsha)));
+  }
+  if (isFiniteNumber(input.sleepBeforeFajr)) {
+    out.sleepBeforeFajr = Math.min(120, Math.max(0, Math.round(input.sleepBeforeFajr)));
   }
   if (isFiniteNumber(input.hijriOffset)) {
     out.hijriOffset = Math.min(3, Math.max(-3, Math.round(input.hijriOffset)));

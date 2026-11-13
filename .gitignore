@@ -9,6 +9,10 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 
+# Python bytecode from scripts/kiosk-sleep.py
+__pycache__/
+*.pyc
+
 # Runtime config — contains the real location. Never commit this.
 public/config.json
 config.json

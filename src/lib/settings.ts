@@ -29,6 +29,12 @@ export interface Settings {
   adhanVolume: number;
   /** Which prayer times should play. Sunrise is never included. */
   adhanPrayers: AdhanPrayerKey[];
+  /** Dim the screen and stop polling between Isha and Fajr. */
+  sleepEnabled: boolean;
+  /** Minutes after Isha before the screen goes quiet. */
+  sleepAfterIsha: number;
+  /** Minutes before Fajr to wake, so the countdown is already showing. */
+  sleepBeforeFajr: number;
   /** Set once the user has saved their own location. */
   configured: boolean;
 }
@@ -83,6 +89,11 @@ export const DEFAULT_SETTINGS: Settings = {
   // is as loud as the app can go. Anything beyond needs the system mixer.
   adhanVolume: 1,
   adhanPrayers: [...DEFAULT_ADHAN_PRAYERS],
+  // On by default: a glowing screen at 2am is the thing most people want
+  // gone, and the adhan still plays because the machine stays awake.
+  sleepEnabled: true,
+  sleepAfterIsha: 30,
+  sleepBeforeFajr: 10,
   configured: false,
 };
 
@@ -150,6 +161,22 @@ export function normalizeSettings(raw: unknown): Settings {
       DEFAULT_SETTINGS.adhanVolume,
     ),
     adhanPrayers: normalizeAdhanPrayers(input.adhanPrayers),
+    sleepEnabled:
+      typeof input.sleepEnabled === 'boolean'
+        ? input.sleepEnabled
+        : DEFAULT_SETTINGS.sleepEnabled,
+    sleepAfterIsha: clampNumber(
+      input.sleepAfterIsha,
+      0,
+      180,
+      DEFAULT_SETTINGS.sleepAfterIsha,
+    ),
+    sleepBeforeFajr: clampNumber(
+      input.sleepBeforeFajr,
+      0,
+      120,
+      DEFAULT_SETTINGS.sleepBeforeFajr,
+    ),
     configured: input.configured === true,
   };
 }
@@ -213,6 +240,9 @@ export function applyConfig(
     adhanPrayers: normalizeAdhanPrayers(
       config.adhanPrayers ?? settings.adhanPrayers,
     ),
+    sleepEnabled: config.sleepEnabled ?? settings.sleepEnabled,
+    sleepAfterIsha: config.sleepAfterIsha ?? settings.sleepAfterIsha,
+    sleepBeforeFajr: config.sleepBeforeFajr ?? settings.sleepBeforeFajr,
     adjustments: config.adjustments
       ? { ...settings.adjustments, ...config.adjustments }
       : settings.adjustments,
@@ -231,6 +261,9 @@ export function applyConfig(
     next.adhanEnabled !== settings.adhanEnabled ||
     next.adhanVolume !== settings.adhanVolume ||
     JSON.stringify(next.adhanPrayers) !== JSON.stringify(settings.adhanPrayers) ||
+    next.sleepEnabled !== settings.sleepEnabled ||
+    next.sleepAfterIsha !== settings.sleepAfterIsha ||
+    next.sleepBeforeFajr !== settings.sleepBeforeFajr ||
     JSON.stringify(next.adjustments) !== JSON.stringify(settings.adjustments) ||
     next.configured !== settings.configured;
 

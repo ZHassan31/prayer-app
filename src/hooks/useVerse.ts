@@ -10,8 +10,14 @@ import { fetchVerse, VERSE_REFS, type QuranVerse } from '../lib/quran';
  *
  * The index is taken modulo the list length, so callers can keep incrementing
  * forever without worrying about the bound.
+ *
+ * `paused` stops fetching during the night quiet window. The verse already in
+ * state is kept, so waking up shows it immediately.
  */
-export function useVerse(index: number): {
+export function useVerse(
+  index: number,
+  paused = false,
+): {
   verse: QuranVerse | null;
   loading: boolean;
 } {
@@ -22,6 +28,8 @@ export function useVerse(index: number): {
   const cache = useRef(new Map<string, QuranVerse>());
 
   useEffect(() => {
+    if (paused) return;
+
     const ref = VERSE_REFS[index % VERSE_REFS.length];
     if (!ref) return;
 
@@ -55,7 +63,7 @@ export function useVerse(index: number): {
       cancelled = true;
       controller.abort();
     };
-  }, [index]);
+  }, [index, paused]);
 
   return { verse, loading };
 }

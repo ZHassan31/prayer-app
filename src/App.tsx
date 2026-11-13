@@ -23,6 +23,7 @@ import {
   type AdhanPrayerKey,
   type Settings,
 } from './lib/settings';
+import { sleepWindow } from './lib/sleep';
 
 /** Narrows a prayer key to one that has an adhan (sunrise never does). */
 function isAdhanPrayerKey(
@@ -64,9 +65,22 @@ export default function App() {
 
   const { play: playAdhan, stop: stopAdhan, status: adhanStatus } = useAdhan();
 
+  /*
+   * Night quiet window.
+   *
+   * Computed from the schedule, so it can never disagree with the times on
+   * screen. `sleeping` is read from a ref-free calculation on every render,
+   * which is cheap: it is two array scans.
+   *
+   * The clock is paused while sleeping, so `now` freezes. That means the
+   * window cannot be recomputed from `now` alone — it would never end. The
+   * wake-up is therefore driven by a separate timer below.
+   */
+  const [sleeping, setSleeping] = useState(false);
+
   // The countdown shows seconds, so tick once per second.
-  const now = useNow(1000);
-  useWakeLock(true);
+  const now = useNow(1000, sleeping);
+  useWakeLock(!sleeping);
   useAutoReload(60_000);
 
   /*
@@ -77,6 +91,9 @@ export default function App() {
     settings.latitude,
     settings.longitude,
     settings.timezone,
+    15 * 60 * 1000,
+    60 * 60 * 1000,
+    sleeping,
   );
 
   /*
@@ -153,6 +170,58 @@ export default function App() {
     if (remaining <= AMBER_LEAD_MS) return 'amber';
     return null;
   }, [selection, now]);
+
+  /*
+   * Enter and leave the quiet window.
+   *
+   * Two separate timers rather than one interval, because the clock is paused
+   * while sleeping: `now` stops advancing, so nothing would ever notice that
+   * the window had ended. The wake timer is the only thing that can bring the
+   * app back, so it is scheduled against the wall clock, not `now`.
+   *
+   * Re-runs whenever the schedule changes (new day, settings edit), which
+   * re-arms both timers against the fresh Isha and Fajr.
+   */
+  useEffect(() => {
+    const quiet = sleepWindow(schedule, new Date(), {
+      enabled: settings.sleepEnabled,
+      afterIshaMinutes: settings.sleepAfterIsha,
+      beforeFajrMinutes: settings.sleepBeforeFajr,
+    });
+
+    if (!quiet.sleepAt || !quiet.wakeAt) {
+      setSleeping(false);
+      return;
+    }
+
+    const sleepAt = quiet.sleepAt.getTime();
+    const wakeAt = quiet.wakeAt.getTime();
+    const timers: number[] = [];
+
+    const enter = () => {
+      setSleeping(true);
+      // Arm the wake-up now, so it survives the paused clock.
+      const delay = Math.max(0, wakeAt - Date.now());
+      timers.push(window.setTimeout(() => setSleeping(false), delay));
+    };
+
+    if (Date.now() >= sleepAt) {
+      enter();
+    } else {
+      timers.push(
+        window.setTimeout(enter, Math.max(0, sleepAt - Date.now())),
+      );
+    }
+
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
+    };
+  }, [
+    schedule,
+    settings.sleepEnabled,
+    settings.sleepAfterIsha,
+    settings.sleepBeforeFajr,
+  ]);
 
   /*
    * Play the adhan when a prayer time arrives.
@@ -237,6 +306,7 @@ export default function App() {
       className={`app${cursorIdle ? ' cursor-idle' : ''}`}
       data-theme={settings.theme}
       data-alert={alertStage ?? undefined}
+      data-sleeping={sleeping ? 'true' : undefined}
     >
       <div className="ambient" aria-hidden="true" />
 
@@ -251,6 +321,7 @@ export default function App() {
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenYearly={() => setYearlyOpen(true)}
         showSettingsButton={!KIOSK}
+        sleeping={sleeping}
       />
 
       {yearlyOpen && (
@@ -258,6 +329,19 @@ export default function App() {
           settings={settings}
           year={now.getFullYear()}
           onClose={() => setYearlyOpen(false)}
+        />
+      )}
+
+      {/*
+        Quiet overlay. A black sheet over everything, so the panel is dark
+        even if the OS backlight is still on. Any pointer or key wakes it.
+      */}
+      {sleeping && (
+        <div
+          className="sleep-veil"
+          role="presentation"
+          onClick={() => setSleeping(false)}
+          onKeyDown={() => setSleeping(false)}
         />
       )}
 

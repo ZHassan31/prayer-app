@@ -1657,3 +1657,43 @@ select {
   background: rgba(96, 165, 250, 0.55);
   border: 1px solid rgba(96, 165, 250, 0.75);
 }
+
+/* ---------- Night quiet window ---------- */
+
+/*
+ * A black sheet over the whole app.
+ *
+ * The browser cannot switch off the display, so this is the app's half of the
+ * job: make the page genuinely black so an LCD shows nothing but its own
+ * backlight bleed. The OS handles the backlight itself (see
+ * scripts/kiosk-sleep.py).
+ *
+ * It sits above everything, including the settings and yearly panels, so a
+ * stray overlay cannot leave a lit rectangle on the wall.
+ */
+.sleep-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  cursor: none;
+  animation: sleep-fade 1.2s ease forwards;
+}
+
+@keyframes sleep-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * While sleeping, stop the ambient drift. It is a 26s infinite animation on a
+ * blurred full-screen layer — the single most expensive thing on the page, and
+ * completely pointless behind a black veil.
+ */
+.app[data-sleeping='true'] .ambient {
+  animation: none;
+}

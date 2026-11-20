@@ -150,13 +150,20 @@ fi
 
 # ---------- 5. Kill screen blanking inside the session ----------
 
+# The screensaver and the idle timers must be off, or the screen would blank
+# at random times during the day.
+#
+# DPMS itself must stay ENABLED, though. `xset -dpms` disables the extension
+# entirely, which also blocks the deliberate `xset dpms force off` that
+# kiosk-sleep.py uses at night — the command silently does nothing. So we
+# disable the timers but leave the extension on.
 echo "==> Writing display-power autostart entry"
 cat > "$HOME/.config/autostart/kiosk-display.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=Kiosk Display Power
-Comment=Disable DPMS blanking and screen saver
-Exec=sh -c "xset s off; xset s noblank; xset -dpms"
+Comment=Disable screen saver and idle blanking, keep DPMS available
+Exec=sh -c "xset s off; xset s noblank; xset +dpms; xset dpms 0 0 0"
 Terminal=false
 X-GNOME-Autostart-enabled=true
 EOF

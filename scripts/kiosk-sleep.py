@@ -30,7 +30,11 @@ Usage
 Run it from the XFCE autostart entry so it has access to the X display. It
 loops forever, sleeping until the next transition.
 
-Requires: python3, adhan (pip install adhan), xset (x11-xserver-utils).
+Requires: python3, adhanpy (pip install adhanpy), xset (x11-xserver-utils).
+
+Note on the dependency: the PyPI package named `adhan` is an unrelated 2015
+library with a different API and no Moonsighting Committee method. The correct
+port of the JavaScript `adhan` library the web app uses is `adhanpy`.
 """
 
 from __future__ import annotations
@@ -43,12 +47,15 @@ import time
 from zoneinfo import ZoneInfo
 
 try:
-    from adhan import CalculationMethod, Coordinates, Madhab, PrayerTimes
+    from adhanpy.PrayerTimes import PrayerTimes
+    from adhanpy.calculation.CalculationMethod import CalculationMethod
+    from adhanpy.calculation.CalculationParameters import CalculationParameters
+    from adhanpy.calculation.Madhab import Madhab
 except ImportError:
     sys.exit(
-        "Missing dependency: adhan\n"
-        "Install with:  pip install --user adhan\n"
-        "(or: apt install python3-adhan if available)"
+        "Missing dependency: adhanpy\n"
+        "Install with:  python3 -m pip install --user --break-system-packages adhanpy\n"
+        "(the package named 'adhan' is a different library and will not work)"
     )
 
 
@@ -56,24 +63,48 @@ except ImportError:
 # meet in summer; below this the screen would flicker off and on, so we stay on.
 MIN_WINDOW = dt.timedelta(minutes=60)
 
+# Maps the method names used by the web app to adhanpy's enum.
+#
+# adhanpy implements 11 of the 12 methods the web app offers. Tehran and
+# Turkey are missing; if either is configured the script falls back to
+# MoonsightingCommittee and says so, which is close enough for a sleep window.
+METHODS = {
+    "MuslimWorldLeague": CalculationMethod.MUSLIM_WORLD_LEAGUE,
+    "Egyptian": CalculationMethod.EGYPTIAN,
+    "Karachi": CalculationMethod.KARACHI,
+    "UmmAlQura": CalculationMethod.UMM_AL_QURA,
+    "Dubai": CalculationMethod.DUBAI,
+    "MoonsightingCommittee": CalculationMethod.MOON_SIGHTING_COMMITTEE,
+    "NorthAmerica": CalculationMethod.NORTH_AMERICA,
+    "Kuwait": CalculationMethod.KUWAIT,
+    "Qatar": CalculationMethod.QATAR,
+    "Singapore": CalculationMethod.SINGAPORE,
+}
 
-def build_params(method: str, madhab: str):
-    """Builds adhan parameters from the same names the web app uses."""
-    factory = getattr(CalculationMethod, method, None)
-    if factory is None:
+
+def build_params(method: str, madhab: str) -> CalculationParameters:
+    """Builds adhanpy parameters from the same names the web app uses."""
+    enum = METHODS.get(method)
+    if enum is None:
         print(f"Unknown method {method!r}, falling back to MoonsightingCommittee")
-        factory = CalculationMethod.MoonsightingCommittee
-    params = factory()
-    params.madhab = Madhab.Hanafi if madhab == "hanafi" else Madhab.Shafi
+        enum = CalculationMethod.MOON_SIGHTING_COMMITTEE
+
+    params = CalculationParameters(method=enum)
+    params.madhab = Madhab.HANAFI if madhab == "hanafi" else Madhab.SHAFI
     return params
 
 
 def times_for(day: dt.date, coords, params, tz: ZoneInfo):
     """Returns (isha, fajr) for a civil date, as timezone-aware datetimes."""
-    # adhan reads only Y/M/D from this value.
-    anchor = dt.datetime(day.year, day.month, day.day, 12, 0, 0)
-    times = PrayerTimes(coords, anchor, params)
-    return times.isha.replace(tzinfo=tz), times.fajr.replace(tzinfo=tz)
+    # adhanpy reads only Y/M/D from this value.
+    anchor = dt.datetime(day.year, day.month, day.day, 12, 0, 0, tzinfo=tz)
+    times = PrayerTimes(
+        coordinates=coords,
+        date=anchor,
+        calculation_parameters=params,
+        time_zone=tz,
+    )
+    return times.isha, times.fajr
 
 
 def next_window(now: dt.datetime, coords, params, tz: ZoneInfo, args):
@@ -130,7 +161,7 @@ def main() -> int:
     args = parser.parse_args()
 
     tz = ZoneInfo(args.tz)
-    coords = Coordinates(args.lat, args.lon)
+    coords = (args.lat, args.lon)
     params = build_params(args.method, args.madhab)
 
     print(
